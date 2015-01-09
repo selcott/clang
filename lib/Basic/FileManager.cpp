@@ -332,10 +332,35 @@ FileManager::getVirtualFile(StringRef Filename, off_t Size,
   if (NamedFileEnt.second && NamedFileEnt.second != NON_EXISTENT_FILE)
     return NamedFileEnt.second;
 
+  // The file name should probably be added to the map in its normalized form
+  // so that searches for the same file in a different form will find it. But
+  // instead of doing that, in order to maintain backwards compatibility I'll
+  // keep the original entry and add a second one in addition to it, keyed on
+  // the normalized form and pointing to the same FileEntry.
+  // Note that this is only necessary here in getVirtualFile but not getFile
+  // because in the case of getFile the key is always the path returned by the
+  // OS after stat'ing the file, which is always the same.
+  SmallString<128> NormalizedPath = Filename;
+  llvm::sys::path::native(NormalizedPath);
+  auto *NormalizedNamedFileEnt = &NamedFileEnt;
+  if (!NormalizedPath.equals(Filename)) {
+    NormalizedNamedFileEnt = &*SeenFileEntries.insert(
+      std::make_pair(NormalizedPath.c_str(), nullptr)).first;
+
+    // If this search succeeded then the file has already been added but in a
+    // different form. This will add another entry corresponding to the form
+    // that was just queried.
+    if (NormalizedNamedFileEnt->second &&
+        NormalizedNamedFileEnt->second != NON_EXISTENT_FILE) {
+      NamedFileEnt.second = NormalizedNamedFileEnt->second;
+      return NormalizedNamedFileEnt->second;
+    }
+  }
+
   ++NumFileCacheMisses;
 
   // By default, initialize it to invalid.
-  NamedFileEnt.second = NON_EXISTENT_FILE;
+  NamedFileEnt.second = NormalizedNamedFileEnt->second = NON_EXISTENT_FILE;
 
   addAncestorsAsVirtualDirs(Filename);
   FileEntry *UFE = nullptr;
@@ -356,7 +381,7 @@ FileManager::getVirtualFile(StringRef Filename, off_t Size,
     Data.ModTime = ModificationTime;
     UFE = &UniqueRealFiles[Data.UniqueID];
 
-    NamedFileEnt.second = UFE;
+    NamedFileEnt.second = NormalizedNamedFileEnt->second = UFE;
 
     // If we had already opened this file, close it now so we don't
     // leak the descriptor. We're not going to use the file
@@ -376,7 +401,7 @@ FileManager::getVirtualFile(StringRef Filename, off_t Size,
   if (!UFE) {
     UFE = new FileEntry();
     VirtualFileEntries.push_back(UFE);
-    NamedFileEnt.second = UFE;
+    NamedFileEnt.second = NormalizedNamedFileEnt->second = UFE;
   }
 
   UFE->Name    = InterndFileName;
