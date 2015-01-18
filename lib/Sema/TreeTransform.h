@@ -763,6 +763,14 @@ public:
   QualType RebuildExtVectorType(QualType ElementType, unsigned NumElements,
                                 SourceLocation AttributeLoc);
 
+  /// \brief Build a new extended matrix type given the element type and
+  /// number of elements.
+  ///
+  /// By default, performs semantic analysis when building the matrix type.
+  /// Subclasses may override this routine to provide different behavior.
+  QualType RebuildExtMatrixType(QualType ElementType, unsigned NumRows,
+                                unsigned NumCols, SourceLocation AttributeLoc);
+
   /// \brief Build a new potentially dependently-sized extended vector type
   /// given the element type and number of elements.
   ///
@@ -1948,6 +1956,25 @@ public:
   /// By default, performs semantic analysis to build the new expression.
   /// Subclasses may override this routine to provide different behavior.
   ExprResult RebuildExtVectorElementExpr(Expr *Base,
+                                               SourceLocation OpLoc,
+                                               SourceLocation AccessorLoc,
+                                               IdentifierInfo &Accessor) {
+
+    CXXScopeSpec SS;
+    DeclarationNameInfo NameInfo(&Accessor, AccessorLoc);
+    return getSema().BuildMemberReferenceExpr(Base, Base->getType(),
+                                              OpLoc, /*IsArrow*/ false,
+                                              SS, SourceLocation(),
+                                              /*FirstQualifierInScope*/ nullptr,
+                                              NameInfo,
+                                              /* TemplateArgs */ nullptr);
+  }
+
+  /// \brief Build a new extended matrix element access expression.
+  ///
+  /// By default, performs semantic analysis to build the new expression.
+  /// Subclasses may override this routine to provide different behavior.
+  ExprResult RebuildExtMatrixElementExpr(Expr *Base,
                                                SourceLocation OpLoc,
                                                SourceLocation AccessorLoc,
                                                IdentifierInfo &Accessor) {
@@ -4318,6 +4345,31 @@ QualType TreeTransform<Derived>::TransformExtVectorType(TypeLocBuilder &TLB,
   }
 
   ExtVectorTypeLoc NewTL = TLB.push<ExtVectorTypeLoc>(Result);
+  NewTL.setNameLoc(TL.getNameLoc());
+
+  return Result;
+}
+
+template<typename Derived>
+QualType TreeTransform<Derived>::TransformExtMatrixType(TypeLocBuilder &TLB,
+                                                        ExtMatrixTypeLoc TL) {
+  const ExtMatrixType *T = TL.getTypePtr();
+  QualType ElementType = getDerived().TransformType(T->getElementType());
+  if (ElementType.isNull())
+    return QualType();
+
+  QualType Result = TL.getType();
+  if (getDerived().AlwaysRebuild() ||
+      ElementType != T->getElementType()) {
+    Result = getDerived().RebuildExtMatrixType(ElementType,
+                                               T->getNumRows(),
+                                               T->getNumCols(),
+                                               /*FIXME*/ SourceLocation());
+    if (Result.isNull())
+      return QualType();
+  }
+
+  ExtMatrixTypeLoc NewTL = TLB.push<ExtMatrixTypeLoc>(Result);
   NewTL.setNameLoc(TL.getNameLoc());
 
   return Result;
@@ -7833,6 +7885,25 @@ TreeTransform<Derived>::TransformExtVectorElementExpr(ExtVectorElementExpr *E) {
 
 template<typename Derived>
 ExprResult
+TreeTransform<Derived>::TransformExtMatrixElementExpr(ExtMatrixElementExpr *E) {
+  ExprResult Base = getDerived().TransformExpr(E->getBase());
+  if (Base.isInvalid())
+    return ExprError();
+
+  if (!getDerived().AlwaysRebuild() &&
+      Base.get() == E->getBase())
+    return E;
+
+  // FIXME: Bad source location
+  SourceLocation FakeOperatorLoc =
+      SemaRef.getLocForEndOfToken(E->getBase()->getLocEnd());
+  return getDerived().RebuildExtMatrixElementExpr(Base.get(), FakeOperatorLoc,
+                                                  E->getAccessorLoc(),
+                                                  E->getAccessor());
+}
+
+template<typename Derived>
+ExprResult
 TreeTransform<Derived>::TransformInitListExpr(InitListExpr *E) {
   bool InitChanged = false;
 
@@ -10448,6 +10519,25 @@ QualType TreeTransform<Derived>::RebuildExtVectorType(QualType ElementType,
     = IntegerLiteral::Create(SemaRef.Context, numElements, SemaRef.Context.IntTy,
                              AttributeLoc);
   return SemaRef.BuildExtVectorType(ElementType, VectorSize, AttributeLoc);
+}
+
+template<typename Derived>
+QualType TreeTransform<Derived>::RebuildExtMatrixType(QualType ElementType,
+                                                      unsigned NumRows,
+                                                      unsigned NumCols,
+                                                 SourceLocation AttributeLoc) {
+  llvm::APInt apNumRows(SemaRef.Context.getIntWidth(SemaRef.Context.IntTy),
+                        NumRows, true);
+  llvm::APInt apNumCols(SemaRef.Context.getIntWidth(SemaRef.Context.IntTy),
+                        NumCols, true);
+  IntegerLiteral *ilNumRows
+    = IntegerLiteral::Create(SemaRef.Context, apNumRows, SemaRef.Context.IntTy,
+                             AttributeLoc);
+  IntegerLiteral *ilNumCols
+    = IntegerLiteral::Create(SemaRef.Context, apNumCols, SemaRef.Context.IntTy,
+                             AttributeLoc);
+  return SemaRef.BuildExtMatrixType(ElementType, ilNumRows, ilNumCols,
+                                    AttributeLoc);
 }
 
 template<typename Derived>

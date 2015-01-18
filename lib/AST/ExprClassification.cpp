@@ -298,6 +298,15 @@ static Cl::Kinds ClassifyInternal(ASTContext &Ctx, const Expr *E) {
       return Cl::CL_LValue;
     return ClassifyInternal(Ctx, cast<ExtVectorElementExpr>(E)->getBase());
 
+    // Extended matrix element access is an lvalue unless there are duplicates
+    // in the shuffle expression.
+  case Expr::ExtMatrixElementExprClass:
+    if (cast<ExtMatrixElementExpr>(E)->containsDuplicateElements())
+      return Cl::CL_DuplicateVectorComponents;
+    if (cast<ExtMatrixElementExpr>(E)->isArrow())
+      return Cl::CL_LValue;
+    return ClassifyInternal(Ctx, cast<ExtMatrixElementExpr>(E)->getBase());
+
     // Simply look at the actual default argument.
   case Expr::CXXDefaultArgExprClass:
     return ClassifyInternal(Ctx, cast<CXXDefaultArgExpr>(E)->getExpr());

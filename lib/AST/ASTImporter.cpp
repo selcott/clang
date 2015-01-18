@@ -53,6 +53,7 @@ namespace clang {
     // FIXME: DependentSizedExtVectorType
     QualType VisitVectorType(const VectorType *T);
     QualType VisitExtVectorType(const ExtVectorType *T);
+    QualType VisitExtMatrixType(const ExtMatrixType *T);
     QualType VisitFunctionNoProtoType(const FunctionNoProtoType *T);
     QualType VisitFunctionProtoType(const FunctionProtoType *T);
     // FIXME: UnresolvedUsingType
@@ -519,7 +520,8 @@ static bool IsStructurallyEquivalent(StructuralEquivalenceContext &Context,
   }
    
   case Type::Vector: 
-  case Type::ExtVector: {
+  case Type::ExtVector:
+  case Type::ExtMatrix: {
     const VectorType *Vec1 = cast<VectorType>(T1);
     const VectorType *Vec2 = cast<VectorType>(T2);
     if (!IsStructurallyEquivalent(Context, 
@@ -1578,6 +1580,16 @@ QualType ASTNodeImporter::VisitExtVectorType(const ExtVectorType *T) {
   
   return Importer.getToContext().getExtVectorType(ToElementType, 
                                                   T->getNumElements());
+}
+
+QualType ASTNodeImporter::VisitExtMatrixType(const ExtMatrixType *T) {
+  QualType ToElementType = Importer.Import(T->getElementType());
+  if (ToElementType.isNull())
+    return QualType();
+  
+  return Importer.getToContext().getExtMatrixType(ToElementType, 
+                                                  T->getNumRows(),
+                                                  T->getNumCols());
 }
 
 QualType

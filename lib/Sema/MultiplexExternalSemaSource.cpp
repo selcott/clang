@@ -236,6 +236,12 @@ void MultiplexExternalSemaSource::ReadExtVectorDecls(
     Sources[i]->ReadExtVectorDecls(Decls);
 }
 
+void MultiplexExternalSemaSource::ReadExtMatrixDecls(
+                                     SmallVectorImpl<TypedefNameDecl*> &Decls) {
+  for(size_t i = 0; i < Sources.size(); ++i)
+    Sources[i]->ReadExtMatrixDecls(Decls);
+}
+
 void MultiplexExternalSemaSource::ReadDynamicClasses(
                                        SmallVectorImpl<CXXRecordDecl*> &Decls) {
   for(size_t i = 0; i < Sources.size(); ++i)

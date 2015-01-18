@@ -867,6 +867,7 @@ void CXXNameMangler::mangleUnresolvedPrefix(NestedNameSpecifier *qualifier,
     case Type::DependentSizedExtVector:
     case Type::Vector:
     case Type::ExtVector:
+    case Type::ExtMatrix:
     case Type::FunctionProto:
     case Type::FunctionNoProto:
     case Type::Enum:
@@ -2321,6 +2322,9 @@ void CXXNameMangler::mangleType(const VectorType *T) {
 void CXXNameMangler::mangleType(const ExtVectorType *T) {
   mangleType(static_cast<const VectorType*>(T));
 }
+void CXXNameMangler::mangleType(const ExtMatrixType *T) {
+  mangleType(static_cast<const VectorType*>(T));
+}
 void CXXNameMangler::mangleType(const DependentSizedExtVectorType *T) {
   Out << "Dv";
   mangleExpression(T->getSizeExpr());
@@ -2645,6 +2649,7 @@ recurse:
   case Expr::ChooseExprClass:
   case Expr::CompoundLiteralExprClass:
   case Expr::ExtVectorElementExprClass:
+  case Expr::ExtMatrixElementExprClass:
   case Expr::GenericSelectionExprClass:
   case Expr::ObjCEncodeExprClass:
   case Expr::ObjCIsaExprClass:

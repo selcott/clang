@@ -214,6 +214,7 @@ bool TypePrinter::canPrefixQualifiers(const Type *T,
     case Type::DependentSizedExtVector:
     case Type::Vector:
     case Type::ExtVector:
+    case Type::ExtMatrix:
     case Type::FunctionProto:
     case Type::FunctionNoProto:
     case Type::Paren:
@@ -576,9 +577,34 @@ void TypePrinter::printExtVectorBefore(const ExtVectorType *T,
 }
 void TypePrinter::printExtVectorAfter(const ExtVectorType *T, raw_ostream &OS) { 
   printAfter(T->getElementType(), OS);
-  OS << " __attribute__((ext_vector_type(";
-  OS << T->getNumElements();
-  OS << ")))";
+  if (Policy.LangOpts.HLSL) {
+    OS << T->getNumElements();
+  }
+  else {
+    OS << " __attribute__((ext_vector_type(";
+    OS << T->getNumElements();
+    OS << ")))";
+  }
+}
+
+void TypePrinter::printExtMatrixBefore(const ExtMatrixType *T,
+                                       raw_ostream &OS) { 
+  printBefore(T->getElementType(), OS);
+}
+void TypePrinter::printExtMatrixAfter(const ExtMatrixType *T, raw_ostream &OS) { 
+  printAfter(T->getElementType(), OS);
+  if (Policy.LangOpts.HLSL) {
+    OS << T->getNumRows();
+    OS << 'x';
+    OS << T->getNumCols();
+  }
+  else {
+    OS << " __attribute__((ext_matrix_type(";
+    OS << T->getNumRows();
+    OS << ",";
+    OS << T->getNumCols();
+    OS << ")))";
+  }
 }
 
 void 

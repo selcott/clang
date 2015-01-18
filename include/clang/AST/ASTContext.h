@@ -796,7 +796,7 @@ public:
   CanQualType UnsignedCharTy, UnsignedShortTy, UnsignedIntTy, UnsignedLongTy;
   CanQualType UnsignedLongLongTy, UnsignedInt128Ty;
   CanQualType FloatTy, DoubleTy, LongDoubleTy;
-  CanQualType HalfTy; // [OpenCL 6.1.1.1], ARM NEON
+  CanQualType HalfTy; // [OpenCL 6.1.1.1], ARM NEON, HLSL
   CanQualType FloatComplexTy, DoubleComplexTy, LongDoubleComplexTy;
   CanQualType VoidPtrTy, NullPtrTy;
   CanQualType DependentTy, OverloadTy, BoundMemberTy, UnknownAnyTy;
@@ -808,6 +808,93 @@ public:
   CanQualType OCLImage2dTy, OCLImage2dArrayTy;
   CanQualType OCLImage3dTy;
   CanQualType OCLSamplerTy, OCLEventTy;
+  // HLSL basic types
+  CanQualType HLSLmin10floatTy;
+  CanQualType HLSLmin16floatTy;
+  CanQualType HLSLmin12intTy;
+  CanQualType HLSLmin16intTy;
+  CanQualType HLSLmin16uintTy;
+  // HLSL vector types
+  CanQualType HLSLbool1Ty, HLSLbool2Ty, HLSLbool3Ty, HLSLbool4Ty;
+  CanQualType HLSLint1Ty, HLSLint2Ty, HLSLint3Ty, HLSLint4Ty;
+  CanQualType HLSLuint1Ty, HLSLuint2Ty, HLSLuint3Ty, HLSLuint4Ty;
+  CanQualType HLSLhalf1Ty, HLSLhalf2Ty, HLSLhalf3Ty, HLSLhalf4Ty;
+  CanQualType HLSLfloat1Ty, HLSLfloat2Ty, HLSLfloat3Ty, HLSLfloat4Ty;
+  CanQualType HLSLdouble1Ty, HLSLdouble2Ty, HLSLdouble3Ty, HLSLdouble4Ty;
+  CanQualType HLSLmin10float1Ty, HLSLmin10float2Ty, HLSLmin10float3Ty, HLSLmin10float4Ty;
+  CanQualType HLSLmin16float1Ty, HLSLmin16float2Ty, HLSLmin16float3Ty, HLSLmin16float4Ty;
+  CanQualType HLSLmin12int1Ty, HLSLmin12int2Ty, HLSLmin12int3Ty, HLSLmin12int4Ty;
+  CanQualType HLSLmin16int1Ty, HLSLmin16int2Ty, HLSLmin16int3Ty, HLSLmin16int4Ty;
+  CanQualType HLSLmin16uint1Ty, HLSLmin16uint2Ty, HLSLmin16uint3Ty, HLSLmin16uint4Ty;
+  // HLSL matrix types
+  CanQualType HLSLbool1x1Ty, HLSLbool1x2Ty, HLSLbool1x3Ty, HLSLbool1x4Ty;
+  CanQualType HLSLbool2x1Ty, HLSLbool2x2Ty, HLSLbool2x3Ty, HLSLbool2x4Ty;
+  CanQualType HLSLbool3x1Ty, HLSLbool3x2Ty, HLSLbool3x3Ty, HLSLbool3x4Ty;
+  CanQualType HLSLbool4x1Ty, HLSLbool4x2Ty, HLSLbool4x3Ty, HLSLbool4x4Ty;
+  CanQualType HLSLint1x1Ty, HLSLint1x2Ty, HLSLint1x3Ty, HLSLint1x4Ty;
+  CanQualType HLSLint2x1Ty, HLSLint2x2Ty, HLSLint2x3Ty, HLSLint2x4Ty;
+  CanQualType HLSLint3x1Ty, HLSLint3x2Ty, HLSLint3x3Ty, HLSLint3x4Ty;
+  CanQualType HLSLint4x1Ty, HLSLint4x2Ty, HLSLint4x3Ty, HLSLint4x4Ty;
+  CanQualType HLSLuint1x1Ty, HLSLuint1x2Ty, HLSLuint1x3Ty, HLSLuint1x4Ty;
+  CanQualType HLSLuint2x1Ty, HLSLuint2x2Ty, HLSLuint2x3Ty, HLSLuint2x4Ty;
+  CanQualType HLSLuint3x1Ty, HLSLuint3x2Ty, HLSLuint3x3Ty, HLSLuint3x4Ty;
+  CanQualType HLSLuint4x1Ty, HLSLuint4x2Ty, HLSLuint4x3Ty, HLSLuint4x4Ty;
+  CanQualType HLSLfloat1x1Ty, HLSLfloat1x2Ty, HLSLfloat1x3Ty, HLSLfloat1x4Ty;
+  CanQualType HLSLfloat2x1Ty, HLSLfloat2x2Ty, HLSLfloat2x3Ty, HLSLfloat2x4Ty;
+  CanQualType HLSLfloat3x1Ty, HLSLfloat3x2Ty, HLSLfloat3x3Ty, HLSLfloat3x4Ty;
+  CanQualType HLSLfloat4x1Ty, HLSLfloat4x2Ty, HLSLfloat4x3Ty, HLSLfloat4x4Ty;
+  CanQualType HLSLmin10float1x1Ty, HLSLmin10float1x2Ty, HLSLmin10float1x3Ty, HLSLmin10float1x4Ty;
+  CanQualType HLSLmin10float2x1Ty, HLSLmin10float2x2Ty, HLSLmin10float2x3Ty, HLSLmin10float2x4Ty;
+  CanQualType HLSLmin10float3x1Ty, HLSLmin10float3x2Ty, HLSLmin10float3x3Ty, HLSLmin10float3x4Ty;
+  CanQualType HLSLmin10float4x1Ty, HLSLmin10float4x2Ty, HLSLmin10float4x3Ty, HLSLmin10float4x4Ty;
+  CanQualType HLSLmin16float1x1Ty, HLSLmin16float1x2Ty, HLSLmin16float1x3Ty, HLSLmin16float1x4Ty;
+  CanQualType HLSLmin16float2x1Ty, HLSLmin16float2x2Ty, HLSLmin16float2x3Ty, HLSLmin16float2x4Ty;
+  CanQualType HLSLmin16float3x1Ty, HLSLmin16float3x2Ty, HLSLmin16float3x3Ty, HLSLmin16float3x4Ty;
+  CanQualType HLSLmin16float4x1Ty, HLSLmin16float4x2Ty, HLSLmin16float4x3Ty, HLSLmin16float4x4Ty;
+  CanQualType HLSLmin12int1x1Ty, HLSLmin12int1x2Ty, HLSLmin12int1x3Ty, HLSLmin12int1x4Ty;
+  CanQualType HLSLmin12int2x1Ty, HLSLmin12int2x2Ty, HLSLmin12int2x3Ty, HLSLmin12int2x4Ty;
+  CanQualType HLSLmin12int3x1Ty, HLSLmin12int3x2Ty, HLSLmin12int3x3Ty, HLSLmin12int3x4Ty;
+  CanQualType HLSLmin12int4x1Ty, HLSLmin12int4x2Ty, HLSLmin12int4x3Ty, HLSLmin12int4x4Ty;
+  CanQualType HLSLmin16int1x1Ty, HLSLmin16int1x2Ty, HLSLmin16int1x3Ty, HLSLmin16int1x4Ty;
+  CanQualType HLSLmin16int2x1Ty, HLSLmin16int2x2Ty, HLSLmin16int2x3Ty, HLSLmin16int2x4Ty;
+  CanQualType HLSLmin16int3x1Ty, HLSLmin16int3x2Ty, HLSLmin16int3x3Ty, HLSLmin16int3x4Ty;
+  CanQualType HLSLmin16int4x1Ty, HLSLmin16int4x2Ty, HLSLmin16int4x3Ty, HLSLmin16int4x4Ty;
+  CanQualType HLSLmin16uint1x1Ty, HLSLmin16uint1x2Ty, HLSLmin16uint1x3Ty, HLSLmin16uint1x4Ty;
+  CanQualType HLSLmin16uint2x1Ty, HLSLmin16uint2x2Ty, HLSLmin16uint2x3Ty, HLSLmin16uint2x4Ty;
+  CanQualType HLSLmin16uint3x1Ty, HLSLmin16uint3x2Ty, HLSLmin16uint3x3Ty, HLSLmin16uint3x4Ty;
+  CanQualType HLSLmin16uint4x1Ty, HLSLmin16uint4x2Ty, HLSLmin16uint4x3Ty, HLSLmin16uint4x4Ty;
+  // HLSL other types
+  CanQualType HLSLAppendStructuredBufferTy;
+  CanQualType HLSLBufferTy;
+  CanQualType HLSLByteAddressBufferTy;
+  CanQualType HLSLConsumeStructuredBufferTy;
+  CanQualType HLSLInputPatchTy;
+  CanQualType HLSLLineStreamTy;
+  CanQualType HLSLmatrixTy;
+  CanQualType HLSLOutputPatchTy;
+  CanQualType HLSLPointStreamTy;
+  CanQualType HLSLRWBufferTy;
+  CanQualType HLSLRWByteAddressBufferTy;
+  CanQualType HLSLRWStructuredBufferTy;
+  CanQualType HLSLRWTexture1DTy;
+  CanQualType HLSLRWTexture1DArrayTy;
+  CanQualType HLSLRWTexture2DTy;
+  CanQualType HLSLRWTexture2DArrayTy;
+  CanQualType HLSLRWTexture3DTy;
+  CanQualType HLSLSamplerStateTy;
+  CanQualType HLSLSamplerComparisonStateTy;
+  CanQualType HLSLStructuredBufferTy;
+  CanQualType HLSLTexture1DTy;
+  CanQualType HLSLTexture1DArrayTy;
+  CanQualType HLSLTexture2DTy;
+  CanQualType HLSLTexture2DArrayTy;
+  CanQualType HLSLTexture2DMSTy;
+  CanQualType HLSLTexture2DMSArrayTy;
+  CanQualType HLSLTexture3DTy;
+  CanQualType HLSLTextureCubeTy;
+  CanQualType HLSLTextureCubeArrayTy;
+  CanQualType HLSLTriangleStreamTy;
+  CanQualType HLSLvectorTy;
 
   // Types for deductions in C++0x [stmt.ranged]'s desugaring. Built on demand.
   mutable QualType AutoDeductTy;     // Deduction against 'auto'.
@@ -1057,6 +1144,18 @@ public:
   ///
   /// \pre \p VectorType must be a built-in type.
   QualType getExtVectorType(QualType VectorType, unsigned NumElts) const;
+  CanQualType getExtVectorType(CanQualType VectorType, unsigned NumElts) const {
+    return CanQualType::CreateUnsafe(getExtVectorType((QualType)VectorType, NumElts));
+  }
+
+  /// \brief Return the unique reference to an extended matrix type
+  /// of the specified element type and size.
+  ///
+  /// \pre \p MatrixType must be a built-in type.
+  QualType getExtMatrixType(QualType MatrixType, unsigned NumRows, unsigned NumCols) const;
+  CanQualType getExtMatrixType(CanQualType MatrixType, unsigned NumRows, unsigned NumCols) const {
+    return CanQualType::CreateUnsafe(getExtMatrixType((QualType)MatrixType, NumRows, NumCols));
+  }
 
   /// \pre Return a non-unique reference to the type for a dependently-sized
   /// vector of the specified element type.

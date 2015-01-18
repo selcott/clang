@@ -2284,6 +2284,11 @@ void CastOperation::CheckCStyleCast() {
     return;
   }
 
+  if (DestType->isExtMatrixType()) {
+    SrcExpr = Self.CheckExtMatrixCast(OpRange, DestType, SrcExpr.get(), Kind);
+    return;
+  }
+
   if (const VectorType *DestVecTy = DestType->getAs<VectorType>()) {
     if (DestVecTy->getVectorKind() == VectorType::AltiVecVector &&
           (SrcType->isIntegerType() || SrcType->isFloatingType())) {

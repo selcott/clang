@@ -5519,7 +5519,7 @@ namespace {
     bool VisitUnaryImag(const UnaryOperator *E);
     // FIXME: Missing: unary -, unary ~, binary add/sub/mul/div,
     //                 binary comparisons, binary and/or/xor,
-    //                 shufflevector, ExtVectorElementExpr
+    //                 shufflevector, ExtVectorElementExpr, ExtMatrixElementExpr
   };
 } // end anonymous namespace
 
@@ -8652,6 +8652,7 @@ static ICEDiag CheckICE(const Expr* E, const ASTContext &Ctx) {
   case Expr::CompoundAssignOperatorClass:
   case Expr::CompoundLiteralExprClass:
   case Expr::ExtVectorElementExprClass:
+  case Expr::ExtMatrixElementExprClass:
   case Expr::DesignatedInitExprClass:
   case Expr::ImplicitValueInitExprClass:
   case Expr::ParenListExprClass:

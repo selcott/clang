@@ -683,6 +683,14 @@ def ExtVectorType : Attr {
   let Documentation = [Undocumented];
 }
 
+def ExtMatrixType : Attr {
+  let Spellings = [GNU<"ext_matrix_type">];
+  let Subjects = SubjectList<[TypedefName], ErrorDiag>;
+  let Args = [ExprArgument<"NumRows">, ExprArgument<"NumCols">];
+  let ASTNode = 0;
+  let Documentation = [Undocumented];
+}
+
 def FallThrough : Attr {
   let Spellings = [CXX11<"clang", "fallthrough">];
 //  let Subjects = [NullStmt];

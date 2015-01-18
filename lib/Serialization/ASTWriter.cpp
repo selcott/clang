@@ -184,6 +184,11 @@ void ASTTypeWriter::VisitExtVectorType(const ExtVectorType *T) {
   Code = TYPE_EXT_VECTOR;
 }
 
+void ASTTypeWriter::VisitExtMatrixType(const ExtMatrixType *T) {
+  VisitVectorType(T);
+  Code = TYPE_EXT_MATRIX;
+}
+
 void ASTTypeWriter::VisitFunctionType(const FunctionType *T) {
   Writer.AddTypeRef(T->getReturnType(), Record);
   FunctionType::ExtInfo C = T->getExtInfo();
@@ -525,6 +530,9 @@ void TypeLocWriter::VisitVectorTypeLoc(VectorTypeLoc TL) {
   Writer.AddSourceLocation(TL.getNameLoc(), Record);
 }
 void TypeLocWriter::VisitExtVectorTypeLoc(ExtVectorTypeLoc TL) {
+  Writer.AddSourceLocation(TL.getNameLoc(), Record);
+}
+void TypeLocWriter::VisitExtMatrixTypeLoc(ExtMatrixTypeLoc TL) {
   Writer.AddSourceLocation(TL.getNameLoc(), Record);
 }
 void TypeLocWriter::VisitFunctionTypeLoc(FunctionTypeLoc TL) {
@@ -4351,6 +4359,10 @@ void ASTWriter::WriteASTCore(Sema &SemaRef,
   RecordData ExtVectorDecls;
   AddLazyVectorDecls(*this, SemaRef.ExtVectorDecls, ExtVectorDecls);
 
+  // Build a record containing all of the ext_matrix declarations.
+  RecordData ExtMatrixDecls;
+  AddLazyVectorDecls(*this, SemaRef.ExtMatrixDecls, ExtMatrixDecls);
+
   // Build a record containing all of the VTable uses information.
   RecordData VTableUses;
   if (!SemaRef.VTableUses.empty()) {
@@ -4645,6 +4657,10 @@ void ASTWriter::WriteASTCore(Sema &SemaRef,
   // Write the record containing ext_vector type names.
   if (!ExtVectorDecls.empty())
     Stream.EmitRecord(EXT_VECTOR_DECLS, ExtVectorDecls);
+
+  // Write the record containing ext_matrix type names.
+  if (!ExtMatrixDecls.empty())
+    Stream.EmitRecord(EXT_MATRIX_DECLS, ExtMatrixDecls);
 
   // Write the record containing VTable uses information.
   if (!VTableUses.empty())

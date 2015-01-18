@@ -150,4 +150,9 @@ LANGSTANDARD(cuda, "cuda",
              "NVIDIA CUDA(tm)",
              LineComment | CPlusPlus | Digraphs)
 
+// HLSL
+LANGSTANDARD(hlsl, "hlsl",
+             "HLSL",
+             LineComment | C99 | Digraphs | HexFloat)
+
 #undef LANGSTANDARD

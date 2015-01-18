@@ -1471,6 +1471,12 @@ class ExtVectorTypeLoc : public InheritingConcreteTypeLoc<VectorTypeLoc,
                                                           ExtVectorType> {
 };
 
+// FIXME: size expression and attribute locations.
+class ExtMatrixTypeLoc : public InheritingConcreteTypeLoc<VectorTypeLoc,
+                                                          ExtMatrixTypeLoc,
+                                                          ExtMatrixType> {
+};
+
 // FIXME: attribute locations.
 // For some reason, this isn't a subtype of VectorType.
 class DependentSizedExtVectorTypeLoc :

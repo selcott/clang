@@ -4526,6 +4526,69 @@ public:
 };
 
 
+/// ExtMatrixElementExpr - This represents access to specific elements of a
+/// matrix, and may occur on the left hand side or right hand side.
+///
+/// Note that the base may have either matrix or pointer to matrix type, just
+/// like a struct field reference.
+///
+class ExtMatrixElementExpr : public Expr {
+  Stmt *Base;
+  IdentifierInfo *Accessor;
+  SourceLocation AccessorLoc;
+public:
+  ExtMatrixElementExpr(QualType ty, ExprValueKind VK, Expr *base,
+                       IdentifierInfo &accessor, SourceLocation loc)
+    : Expr(ExtMatrixElementExprClass, ty, VK,
+           (VK == VK_RValue ? OK_Ordinary : OK_VectorComponent),
+           base->isTypeDependent(), base->isValueDependent(),
+           base->isInstantiationDependent(),
+           base->containsUnexpandedParameterPack()),
+      Base(base), Accessor(&accessor), AccessorLoc(loc) {}
+
+  /// \brief Build an empty vector element expression.
+  explicit ExtMatrixElementExpr(EmptyShell Empty)
+    : Expr(ExtMatrixElementExprClass, Empty) { }
+
+  const Expr *getBase() const { return cast<Expr>(Base); }
+  Expr *getBase() { return cast<Expr>(Base); }
+  void setBase(Expr *E) { Base = E; }
+
+  IdentifierInfo &getAccessor() const { return *Accessor; }
+  void setAccessor(IdentifierInfo *II) { Accessor = II; }
+
+  SourceLocation getAccessorLoc() const { return AccessorLoc; }
+  void setAccessorLoc(SourceLocation L) { AccessorLoc = L; }
+
+  /// getNumElements - Get the number of components being selected.
+  unsigned getNumElements() const;
+
+  /// containsDuplicateElements - Return true if any element access is
+  /// repeated.
+  bool containsDuplicateElements() const;
+
+  /// getEncodedElementAccess - Encode the elements accessed into an llvm
+  /// aggregate Constant of ConstantInt(s).
+  void getEncodedElementAccess(SmallVectorImpl<unsigned> &Elts) const;
+
+  SourceLocation getLocStart() const LLVM_READONLY {
+    return getBase()->getLocStart();
+  }
+  SourceLocation getLocEnd() const LLVM_READONLY { return AccessorLoc; }
+
+  /// isArrow - Return true if the base expression is a pointer to vector,
+  /// return false if the base expression is a vector.
+  bool isArrow() const;
+
+  static bool classof(const Stmt *T) {
+    return T->getStmtClass() == ExtMatrixElementExprClass;
+  }
+
+  // Iterators
+  child_range children() { return child_range(&Base, &Base+1); }
+};
+
+
 /// BlockExpr - Adaptor class for mixing a BlockDecl with expressions.
 /// ^{ statement-body }   or   ^(int arg1, float arg2){ statement-body }
 class BlockExpr : public Expr {

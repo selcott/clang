@@ -91,6 +91,7 @@ bool types::isAcceptedByClang(ID Id) {
   case TY_ObjCXX: case TY_PP_ObjCXX: case TY_PP_ObjCXX_Alias:
   case TY_CHeader: case TY_PP_CHeader:
   case TY_CLHeader:
+  case TY_HLSL:
   case TY_ObjCHeader: case TY_PP_ObjCHeader:
   case TY_CXXHeader: case TY_PP_CXXHeader:
   case TY_ObjCXXHeader: case TY_PP_ObjCXXHeader:
@@ -177,6 +178,7 @@ types::ID types::lookupTypeForExtension(const char *Ext) {
            .Case("pcm", TY_ModuleFile)
            .Case("pch", TY_PCH)
            .Case("gch", TY_PCH)
+           .Case("hlsl", TY_HLSL)
            .Default(TY_INVALID);
 }
 

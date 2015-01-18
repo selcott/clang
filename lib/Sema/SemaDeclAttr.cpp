@@ -1030,6 +1030,12 @@ static void handleExtVectorTypeAttr(Sema &S, Scope *scope, Decl *D,
   S.ExtVectorDecls.push_back(cast<TypedefNameDecl>(D));
 }
 
+static void handleExtMatrixTypeAttr(Sema &S, Scope *scope, Decl *D,
+                                    const AttributeList &Attr) {
+  // Remember this typedef decl, we will need it later for diagnostics.
+  S.ExtMatrixDecls.push_back(cast<TypedefNameDecl>(D));
+}
+
 static void handlePackedAttr(Sema &S, Decl *D, const AttributeList &Attr) {
   if (TagDecl *TD = dyn_cast<TagDecl>(D))
     TD->addAttr(::new (S.Context) PackedAttr(Attr.getRange(), S.Context,
@@ -2298,7 +2304,8 @@ static void handleVecTypeHint(Sema &S, Decl *D, const AttributeList &Attr) {
   QualType ParmType = S.GetTypeFromParser(Attr.getTypeArg(), &ParmTSI);
   assert(ParmTSI && "no type source info for attribute argument");
 
-  if (!ParmType->isExtVectorType() && !ParmType->isFloatingType() &&
+  if (!ParmType->isExtVectorType() && !ParmType->isExtMatrixType() &&
+      !ParmType->isFloatingType() &&
       (ParmType->isBooleanType() ||
        !ParmType->isIntegralType(S.getASTContext()))) {
     S.Diag(Attr.getLoc(), diag::err_attribute_argument_vec_type_hint)
@@ -4405,6 +4412,9 @@ static void ProcessDeclAttribute(Sema &S, Scope *scope, Decl *D,
     break;
   case AttributeList::AT_ExtVectorType:
     handleExtVectorTypeAttr(S, scope, D, Attr);
+    break;
+  case AttributeList::AT_ExtMatrixType:
+    handleExtMatrixTypeAttr(S, scope, D, Attr);
     break;
   case AttributeList::AT_MinSize:
     handleMinSizeAttr(S, D, Attr);

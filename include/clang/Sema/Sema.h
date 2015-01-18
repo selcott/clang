@@ -107,6 +107,7 @@ namespace clang {
   class EnumConstantDecl;
   class Expr;
   class ExtVectorType;
+  class ExtMatrixType;
   class ExternalSemaSource;
   class FormatAttr;
   class FriendDecl;
@@ -381,6 +382,15 @@ public:
   /// us to associate a raw vector type with one of the ext_vector type names.
   /// This is only necessary for issuing pretty diagnostics.
   ExtVectorDeclsType ExtVectorDecls;
+
+  typedef LazyVector<TypedefNameDecl *, ExternalSemaSource,
+                     &ExternalSemaSource::ReadExtMatrixDecls, 2, 2>
+    ExtMatrixDeclsType;
+
+  /// ExtMatrixDecls - This is a list all the extended matrix types. This allows
+  /// us to associate a raw vector type with one of the ext_matrix type names.
+  /// This is only necessary for issuing pretty diagnostics.
+  ExtMatrixDeclsType ExtMatrixDecls;
 
   /// FieldCollector - Collects CXXFieldDecls during parsing of C++ classes.
   std::unique_ptr<CXXFieldCollector> FieldCollector;
@@ -1140,6 +1150,8 @@ public:
                           Expr *ArraySize, unsigned Quals,
                           SourceRange Brackets, DeclarationName Entity);
   QualType BuildExtVectorType(QualType T, Expr *ArraySize,
+                              SourceLocation AttrLoc);
+  QualType BuildExtMatrixType(QualType T, Expr *NumRows, Expr *NumCols,
                               SourceLocation AttrLoc);
 
   bool CheckFunctionReturnType(QualType T, SourceLocation Loc);
@@ -8168,6 +8180,11 @@ public:
   // or vectors and the element type of that vector.
   // returns the cast expr
   ExprResult CheckExtVectorCast(SourceRange R, QualType DestTy, Expr *CastExpr,
+                                CastKind &Kind);
+
+  // CheckExtMatrixCast - check type constraints for extended matrices.
+  // returns the cast expr
+  ExprResult CheckExtMatrixCast(SourceRange R, QualType DestTy, Expr *CastExpr,
                                 CastKind &Kind);
 
   ExprResult BuildCXXFunctionalCastExpr(TypeSourceInfo *TInfo,

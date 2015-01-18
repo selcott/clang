@@ -1332,11 +1332,18 @@ void InitListChecker::CheckVectorType(const InitializedEntity &Entity,
       const VectorType *IVT = IType->getAs<VectorType>();
       unsigned numIElts = IVT->getNumElements();
 
-      if (IType->isExtVectorType())
+      if (IType->isExtVectorType()) {
         VecType = SemaRef.Context.getExtVectorType(elementType, numIElts);
-      else
+      }
+      else if (IType->isExtMatrixType()) {
+        const ExtMatrixType *IMT = IType->getAs<ExtMatrixType>();
+        VecType = SemaRef.Context.getExtMatrixType(elementType,
+                                       IMT->getNumRows(), IMT->getNumCols());
+      }
+      else {
         VecType = SemaRef.Context.getVectorType(elementType, numIElts,
                                                 IVT->getVectorKind());
+      }
       CheckSubElementType(ElementEntity, IList, VecType, Index,
                           StructuredList, StructuredIndex);
       numEltsInit += numIElts;

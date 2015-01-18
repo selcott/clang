@@ -627,6 +627,7 @@ SimplifiedTypeClass clang::getSimplifiedTypeClass(CanQualType T) {
   case Type::DependentSizedExtVector:
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ExtMatrix:
     return STC_Arithmetic;
     
   case Type::FunctionProto:

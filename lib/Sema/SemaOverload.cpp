@@ -1356,6 +1356,20 @@ static bool IsVectorConversion(Sema &S, QualType FromType,
     }
   }
 
+  // There are no conversions between extended matrix types, only identity.
+  if (ToType->isExtMatrixType()) {
+    // There are no conversions between extended matrix types other than the
+    // identity conversion.
+    if (FromType->isExtMatrixType())
+      return false;
+
+    // Vector splat from any arithmetic type to a matrix.
+    if (FromType->isArithmeticType()) {
+      ICK = ICK_Vector_Splat;
+      return true;
+    }
+  }
+
   // We can perform the conversion between vector types in the following cases:
   // 1)vector types are equivalent AltiVec and GCC vector types
   // 2)lax vector conversions are permitted and the vector types are of the
@@ -7584,7 +7598,8 @@ public:
         QualType LandR[2] = { *Vec1, *Vec2 };
         QualType Result = S.Context.BoolTy;
         if (!isComparison) {
-          if ((*Vec1)->isExtVectorType() || !(*Vec2)->isExtVectorType())
+          if (((*Vec1)->isExtVectorType() || (*Vec1)->isExtMatrixType()) ||
+              !((*Vec2)->isExtVectorType() ||(*Vec2)->isExtMatrixType()))
             Result = *Vec1;
           else
             Result = *Vec2;

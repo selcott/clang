@@ -953,6 +953,7 @@ static InputKind ParseFrontendArgs(FrontendOptions &Opts, ArgList &Args,
       .Case("objective-c-header", IK_ObjC)
       .Case("c++-header", IK_CXX)
       .Case("objective-c++-header", IK_ObjCXX)
+      .Case("hlsl", IK_HLSL)
       .Cases("ast", "pcm", IK_AST)
       .Case("ir", IK_LLVM_IR)
       .Default(IK_None);
@@ -1149,6 +1150,9 @@ void CompilerInvocation::setLangDefaults(LangOptions &Opts, InputKind IK,
     case IK_CUDA:
       LangStd = LangStandard::lang_cuda;
       break;
+    case IK_HLSL:
+      LangStd = LangStandard::lang_hlsl;
+      break;
     case IK_Asm:
     case IK_C:
     case IK_PreprocessedC:
@@ -1201,11 +1205,16 @@ void CompilerInvocation::setLangDefaults(LangOptions &Opts, InputKind IK,
 
   Opts.CUDA = LangStd == LangStandard::lang_cuda || IK == IK_CUDA;
 
-  // OpenCL and C++ both have bool, true, false keywords.
-  Opts.Bool = Opts.OpenCL || Opts.CPlusPlus;
+  Opts.HLSL = LangStd == LangStandard::lang_hlsl || IK == IK_HLSL;
+  if (Opts.HLSL) {
+    Opts.NativeHalfType = 1;
+  }
 
-  // OpenCL has half keyword
-  Opts.Half = Opts.OpenCL;
+  // OpenCL, HLSL, and C++ both have bool, true, false keywords.
+  Opts.Bool = Opts.OpenCL || Opts.HLSL || Opts.CPlusPlus;
+
+  // OpenCL and HLSL have half keyword
+  Opts.Half = Opts.OpenCL || Opts.HLSL;
 
   // C++ has wchar_t keyword.
   Opts.WChar = Opts.CPlusPlus;
@@ -1317,6 +1326,11 @@ static void ParseLangArgs(LangOptions &Opts, ArgList &Args, InputKind IK,
         if (!Std.isCPlusPlus())
           Diags.Report(diag::err_drv_argument_not_allowed_with)
             << A->getAsString(Args) << "CUDA";
+        break;
+      case IK_HLSL:
+        if (!Std.isC99())
+          Diags.Report(diag::err_drv_argument_not_allowed_with)
+            << A->getAsString(Args) << "HLSL";
         break;
       default:
         break;

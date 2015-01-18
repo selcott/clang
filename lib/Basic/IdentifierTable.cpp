@@ -108,6 +108,7 @@ namespace {
     KEYNOMS = 0x01000,
     WCHARSUPPORT = 0x02000,
     HALFSUPPORT = 0x04000,
+    KEYHLSL = 0x08000,
     KEYALL = (0xffff & ~KEYNOMS) // Because KEYNOMS is used to exclude.
   };
 
@@ -142,6 +143,7 @@ static KeywordStatus getKeywordStatus(const LangOptions &LangOpts,
   // in non-arc mode.
   if (LangOpts.ObjC2 && (Flags & KEYARC)) return KS_Enabled;
   if (LangOpts.CPlusPlus && (Flags & KEYCXX11)) return KS_Future;
+  if (LangOpts.HLSL && (Flags & KEYHLSL)) return KS_Enabled;
   return KS_Disabled;
 }
 

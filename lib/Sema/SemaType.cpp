@@ -1748,6 +1748,64 @@ QualType Sema::BuildExtVectorType(QualType T, Expr *ArraySize,
   return Context.getDependentSizedExtVectorType(T, ArraySize, AttrLoc);
 }
 
+/// \brief Build an ext-matrix type.
+///
+/// Run the required checks for the extended matrix type.
+QualType Sema::BuildExtMatrixType(QualType T, Expr *NumRows, Expr *NumCols,
+                                  SourceLocation AttrLoc) {
+  // unlike gcc's vector_size attribute, we do not allow vectors to be defined
+  // in conjunction with complex types (pointers, arrays, functions, etc.).
+  if (!T->isDependentType() &&
+      !T->isIntegerType() && !T->isRealFloatingType()) {
+    Diag(AttrLoc, diag::err_attribute_invalid_vector_type) << T;
+    return QualType();
+  }
+
+  if (NumRows->isTypeDependent() || NumRows->isValueDependent() ||
+      NumCols->isTypeDependent() || NumCols->isValueDependent()) {
+    return QualType();
+  }
+
+  llvm::APSInt apNumRows(32);
+  if (!NumRows->isIntegerConstantExpr(apNumRows, Context)) {
+    Diag(AttrLoc, diag::err_attribute_argument_type)
+      << "ext_matrix_type" << AANT_ArgumentIntegerConstant
+      << NumRows->getSourceRange();
+    return QualType();
+  }
+
+  llvm::APSInt apNumCols(32);
+  if (!NumCols->isIntegerConstantExpr(apNumCols, Context)) {
+    Diag(AttrLoc, diag::err_attribute_argument_type)
+      << "ext_matrix_type" << AANT_ArgumentIntegerConstant
+      << NumCols->getSourceRange();
+    return QualType();
+  }
+
+  unsigned numRows = static_cast<unsigned>(apNumRows.getZExtValue());
+  unsigned numCols = static_cast<unsigned>(apNumCols.getZExtValue());
+
+  if (numRows == 0) {
+    Diag(AttrLoc, diag::err_attribute_zero_size)
+    << NumRows->getSourceRange();
+    return QualType();
+  }
+
+  if (numCols == 0) {
+    Diag(AttrLoc, diag::err_attribute_zero_size)
+    << NumCols->getSourceRange();
+    return QualType();
+  }
+
+  if (ExtMatrixType::isMatrixSizeTooLarge(numRows, numCols)) {
+    Diag(AttrLoc, diag::err_attribute_size_too_large)
+      << NumRows->getSourceRange() << NumCols->getSourceRange();
+    return QualType();
+  }
+
+  return Context.getExtMatrixType(T, numRows, numCols);
+}
+
 bool Sema::CheckFunctionReturnType(QualType T, SourceLocation Loc) {
   if (T->isArrayType() || T->isFunctionType()) {
     Diag(Loc, diag::err_func_returning_array_function)
@@ -4735,6 +4793,27 @@ static void HandleExtVectorTypeAttr(QualType &CurType,
     CurType = T;
 }
 
+/// \brief Process the HLSL ext_matrix_type attribute when it occurs on
+/// a type.
+static void HandleExtMatrixTypeAttr(QualType &CurType,
+                                    const AttributeList &Attr,
+                                    Sema &S) {
+  // check the attribute arguments.
+  if (Attr.getNumArgs() != 2) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments)
+      << Attr.getName() << 1;
+    return;
+  }
+
+  Expr *rowsExpr = Attr.getArgAsExpr(0);
+  Expr *colsExpr = Attr.getArgAsExpr(1);
+
+  // Create the matrix type.
+  QualType T = S.BuildExtMatrixType(CurType, rowsExpr, colsExpr, Attr.getLoc());
+  if (!T.isNull())
+    CurType = T;
+}
+
 static bool isPermittedNeonBaseType(QualType &Ty,
                                     VectorType::VectorKind VecKind, Sema &S) {
   const BuiltinType *BTy = Ty->getAs<BuiltinType>();
@@ -4918,6 +4997,10 @@ static void processTypeAttrs(TypeProcessingState &state, QualType &type,
       break;
     case AttributeList::AT_ExtVectorType:
       HandleExtVectorTypeAttr(type, attr, state.getSema());
+      attr.setUsedAsTypeAttr();
+      break;
+    case AttributeList::AT_ExtMatrixType:
+      HandleExtMatrixTypeAttr(type, attr, state.getSema());
       attr.setUsedAsTypeAttr();
       break;
     case AttributeList::AT_NeonVectorType:

@@ -1618,6 +1618,26 @@ DeduceTemplateArgumentsByTypeMatch(Sema &S,
       
       return Sema::TDK_NonDeducedMismatch;
     }
+
+    //     (clang extension)
+    //
+    //     T __attribute__(((ext_matrix_type(<integral constant>, <integral constant>))))
+    case Type::ExtMatrix: {
+      const ExtMatrixType *MatrixParam = cast<ExtMatrixType>(Param);
+      if (const ExtMatrixType *MatrixArg = dyn_cast<ExtMatrixType>(Arg)) {
+        // Make sure that the vectors have the same number of elements.
+        if (MatrixParam->getNumElements() != MatrixArg->getNumElements())
+          return Sema::TDK_NonDeducedMismatch;
+        
+        // Perform deduction on the element types.
+        return DeduceTemplateArgumentsByTypeMatch(S, TemplateParams,
+                                                  MatrixParam->getElementType(),
+                                                  MatrixArg->getElementType(),
+                                                  Info, Deduced, TDF);
+      }
+
+      return Sema::TDK_NonDeducedMismatch;
+    }
       
     //     (clang extension)
     //
@@ -4832,6 +4852,7 @@ MarkUsedTemplateParameters(ASTContext &Ctx, QualType T,
 
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ExtMatrix:
     MarkUsedTemplateParameters(Ctx,
                                cast<VectorType>(T)->getElementType(),
                                OnlyDeduced, Depth, Used);

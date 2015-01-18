@@ -2959,6 +2959,7 @@ bool Expr::HasSideEffects(const ASTContext &Ctx,
   case BinaryConditionalOperatorClass:
   case CompoundLiteralExprClass:
   case ExtVectorElementExprClass:
+  case ExtMatrixElementExprClass:
   case DesignatedInitExprClass:
   case ParenListExprClass:
   case CXXPseudoDestructorExprClass:
@@ -3364,7 +3365,7 @@ bool Expr::refersToVectorElement() const {
   if (const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E))
     return ASE->getBase()->getType()->isVectorType();
 
-  if (isa<ExtVectorElementExpr>(E))
+  if (isa<ExtVectorElementExpr>(E) || isa<ExtMatrixElementExpr>(E))
     return true;
 
   return false;
@@ -3428,6 +3429,69 @@ void ExtVectorElementExpr::getEncodedElementAccess(
       Index = 2 * i + 1;
     else
       Index = ExtVectorType::getAccessorIdx(Comp[i]);
+
+    Elts.push_back(Index);
+  }
+}
+
+/// isArrow - Return true if the base expression is a pointer to matrix,
+/// return false if the base expression is a matrix.
+bool ExtMatrixElementExpr::isArrow() const {
+  return getBase()->getType()->isPointerType();
+}
+
+unsigned ExtMatrixElementExpr::getNumElements() const {
+  if (const VectorType *VT = getType()->getAs<VectorType>())
+    return VT->getNumElements();
+  return 1;
+}
+
+/// containsDuplicateElements - Return true if any element access is repeated.
+bool ExtMatrixElementExpr::containsDuplicateElements() const {
+  // FIXME: Refactor this code to an accessor on the AST node which returns the
+  // "type" of component access, and share with code below and in Sema.
+  StringRef Comp = Accessor->getName();
+
+  // Halving swizzles do not contain duplicate elements.
+  if (Comp == "hi" || Comp == "lo" || Comp == "even" || Comp == "odd")
+    return false;
+
+  // Advance past s-char prefix on hex swizzles.
+  if (Comp[0] == 's' || Comp[0] == 'S')
+    Comp = Comp.substr(1);
+
+  for (unsigned i = 0, e = Comp.size(); i != e; ++i)
+    if (Comp.substr(i + 1).find(Comp[i]) != StringRef::npos)
+        return true;
+
+  return false;
+}
+
+/// getEncodedElementAccess - We encode the fields as a llvm ConstantArray.
+void ExtMatrixElementExpr::getEncodedElementAccess(
+                                  SmallVectorImpl<unsigned> &Elts) const {
+  StringRef Comp = Accessor->getName();
+  if (Comp[0] == 's' || Comp[0] == 'S')
+    Comp = Comp.substr(1);
+
+  bool isHi =   Comp == "hi";
+  bool isLo =   Comp == "lo";
+  bool isEven = Comp == "even";
+  bool isOdd  = Comp == "odd";
+
+  for (unsigned i = 0, e = getNumElements(); i != e; ++i) {
+    uint64_t Index;
+
+    if (isHi)
+      Index = e + i;
+    else if (isLo)
+      Index = i;
+    else if (isEven)
+      Index = 2 * i;
+    else if (isOdd)
+      Index = 2 * i + 1;
+    else
+      Index = ExtMatrixType::getAccessorIdx(Comp[i]);
 
     Elts.push_back(Index);
   }

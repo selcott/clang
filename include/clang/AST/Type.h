@@ -1340,6 +1340,24 @@ protected:
     enum { MaxNumElements = (1 << (29 - NumTypeBits)) - 1 };
   };
 
+  class MatrixTypeBitfields {
+    friend class ExtMatrixType;
+
+    unsigned : NumTypeBits;
+
+    /// VecKind - The kind of vector, will always be ExtMatrix.
+    unsigned VecKind : 3;
+
+    /// NumRows - The number of rows in the matrix.
+    unsigned NumRows : 3;
+
+    /// NumCols - The number of columns in the matrix.
+    unsigned NumCols : 3;
+
+    enum { MaxNumRows = 4 };
+    enum { MaxNumCols = 4 };
+  };
+
   class AttributedTypeBitfields {
     friend class AttributedType;
 
@@ -1369,6 +1387,7 @@ protected:
     ReferenceTypeBitfields ReferenceTypeBits;
     TypeWithKeywordBitfields TypeWithKeywordBits;
     VectorTypeBitfields VectorTypeBits;
+    MatrixTypeBitfields MatrixTypeBits;
   };
 
 private:
@@ -1570,6 +1589,7 @@ public:
   bool isComplexIntegerType() const;            // GCC _Complex integer type.
   bool isVectorType() const;                    // GCC vector type.
   bool isExtVectorType() const;                 // Extended vector type.
+  bool isExtMatrixType() const;                 // Extended matrix type.
   bool isObjCObjectPointerType() const;         // pointer to ObjC object
   bool isObjCRetainableType() const;            // ObjC object or block pointer
   bool isObjCLifetimeType() const;              // (array of)* retainable type
@@ -2618,7 +2638,7 @@ public:
   }
 
   static bool classof(const Type *T) {
-    return T->getTypeClass() == Vector || T->getTypeClass() == ExtVector;
+    return T->getTypeClass() == Vector || T->getTypeClass() == ExtVector || T->getTypeClass() == ExtMatrix;
   }
 };
 
@@ -2684,6 +2704,90 @@ public:
 
   static bool classof(const Type *T) {
     return T->getTypeClass() == ExtVector;
+  }
+};
+
+/// ExtMatrixType - Extended matrix type. This type is created using
+/// __attribute__((ext_matrix_type(r,c)), where "r" and "c" are the number
+/// of rows and columns respectively. This class enables HLSL syntax for
+/// accessing matrix elements.
+class ExtMatrixType : public VectorType {
+  ExtMatrixType(QualType vecType, unsigned nRows, unsigned nCols, QualType canonType) :
+    VectorType(ExtMatrix, vecType, 0, canonType, GenericVector) {
+      MatrixTypeBits.NumRows = nRows;
+      MatrixTypeBits.NumCols = nCols;
+  }
+  friend class ASTContext;  // ASTContext creates these.
+public:
+  static int getPointAccessorIdx(char c) {
+    switch (c) {
+    default: return -1;
+    case 'x': return 0;
+    case 'y': return 1;
+    case 'z': return 2;
+    case 'w': return 3;
+    }
+  }
+  static int getNumericAccessorIdx(char c) {
+    switch (c) {
+      default: return -1;
+      case '0': return 0;
+      case '1': return 1;
+      case '2': return 2;
+      case '3': return 3;
+      case '4': return 4;
+      case '5': return 5;
+      case '6': return 6;
+      case '7': return 7;
+      case '8': return 8;
+      case '9': return 9;
+      case 'A':
+      case 'a': return 10;
+      case 'B':
+      case 'b': return 11;
+      case 'C':
+      case 'c': return 12;
+      case 'D':
+      case 'd': return 13;
+      case 'E':
+      case 'e': return 14;
+      case 'F':
+      case 'f': return 15;
+    }
+  }
+
+  static int getAccessorIdx(char c) {
+    if (int idx = getPointAccessorIdx(c)+1) return idx-1;
+    return getNumericAccessorIdx(c);
+  }
+
+  static void Profile(llvm::FoldingSetNodeID &ID, QualType ElementType,
+                      unsigned NumRows, unsigned NumCols, TypeClass TypeClass,
+                      VectorKind VecKind) {
+    ID.AddPointer(ElementType.getAsOpaquePtr());
+    ID.AddInteger(NumRows);
+    ID.AddInteger(NumCols);
+    ID.AddInteger(TypeClass);
+    ID.AddInteger(VecKind);
+  }
+
+  unsigned getNumRows() const { return MatrixTypeBits.NumRows; }
+  unsigned getNumCols() const { return MatrixTypeBits.NumCols; }
+  static bool isMatrixSizeTooLarge(unsigned NumRows, unsigned NumCols) {
+    return NumRows > MatrixTypeBitfields::MaxNumRows ||
+           NumCols > MatrixTypeBitfields::MaxNumCols;
+  }
+
+  bool isAccessorWithinNumElements(char c) const {
+    if (int idx = getAccessorIdx(c)+1)
+      return unsigned(idx-1) < getNumElements();
+    return false;
+  }
+  bool isSugared() const { return false; }
+  QualType desugar() const { return QualType(this, 0); }
+
+  static bool classof(const Type *T) {
+    return T->getTypeClass() == ExtMatrix;
   }
 };
 
@@ -5000,6 +5104,9 @@ inline bool Type::isVectorType() const {
 }
 inline bool Type::isExtVectorType() const {
   return isa<ExtVectorType>(CanonicalType);
+}
+inline bool Type::isExtMatrixType() const {
+  return isa<ExtMatrixType>(CanonicalType);
 }
 inline bool Type::isObjCObjectPointerType() const {
   return isa<ObjCObjectPointerType>(CanonicalType);

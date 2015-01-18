@@ -1043,6 +1043,7 @@ CanThrowResult Sema::canThrow(const Expr *E) {
   case Expr::DesignatedInitExprClass:
   case Expr::ExprWithCleanupsClass:
   case Expr::ExtVectorElementExprClass:
+  case Expr::ExtMatrixElementExprClass:
   case Expr::InitListExprClass:
   case Expr::MemberExprClass:
   case Expr::ObjCIsaExprClass:

@@ -930,6 +930,8 @@ DEF_TRAVERSE_TYPE(VectorType, { TRY_TO(TraverseType(T->getElementType())); })
 
 DEF_TRAVERSE_TYPE(ExtVectorType, { TRY_TO(TraverseType(T->getElementType())); })
 
+DEF_TRAVERSE_TYPE(ExtMatrixType, { TRY_TO(TraverseType(T->getElementType())); })
+
 DEF_TRAVERSE_TYPE(FunctionNoProtoType,
                   { TRY_TO(TraverseType(T->getReturnType())); })
 
@@ -1131,6 +1133,12 @@ DEF_TRAVERSE_TYPELOC(VectorType, {
 // FIXME: size and attributes
 // FIXME: base VectorTypeLoc is unfinished
 DEF_TRAVERSE_TYPELOC(ExtVectorType, {
+  TRY_TO(TraverseType(TL.getTypePtr()->getElementType()));
+})
+
+// FIXME: size and attributes
+// FIXME: base VectorTypeLoc is unfinished
+DEF_TRAVERSE_TYPELOC(ExtMatrixType, {
   TRY_TO(TraverseType(TL.getTypePtr()->getElementType()));
 })
 
@@ -2225,6 +2233,7 @@ DEF_TRAVERSE_STMT(CXXThrowExpr, {})
 DEF_TRAVERSE_STMT(UserDefinedLiteral, {})
 DEF_TRAVERSE_STMT(DesignatedInitExpr, {})
 DEF_TRAVERSE_STMT(ExtVectorElementExpr, {})
+DEF_TRAVERSE_STMT(ExtMatrixElementExpr, {})
 DEF_TRAVERSE_STMT(GNUNullExpr, {})
 DEF_TRAVERSE_STMT(ImplicitValueInitExpr, {})
 DEF_TRAVERSE_STMT(ObjCBoolLiteralExpr, {})

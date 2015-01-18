@@ -377,6 +377,89 @@ CheckExtVectorComponent(Sema &S, QualType baseType, ExprValueKind &VK,
   return VT; // should never get here (a typedef type should always be found).
 }
 
+/// Check an ext-matrix component access expression.
+///
+/// VK should be set in advance to the value kind of the base
+/// expression.
+static QualType
+CheckExtMatrixComponent(Sema &S, QualType baseType, ExprValueKind &VK,
+                        SourceLocation OpLoc, const IdentifierInfo *CompName,
+                        SourceLocation CompLoc) {
+  // FIXME: Share logic with ExtMatrixElementExpr::containsDuplicateElements,
+  // see FIXME there.
+  //
+  // FIXME: This logic can be greatly simplified by splitting it along
+  // halving/not halving and reworking the component checking.
+  const ExtMatrixType *matType = baseType->getAs<ExtMatrixType>();
+
+  // The vector accessor can't exceed the number of elements.
+  const char *compStr = CompName->getNameStart();
+
+  bool HasRepeated = false;
+  bool HasIndex[16] = {};
+
+  int Idx;
+
+  // Check that we've found one of the special components, or that the component
+  // names must come from the same set.
+  if ((Idx = matType->getPointAccessorIdx(*compStr)) != -1) {
+    do {
+      if (HasIndex[Idx]) HasRepeated = true;
+      HasIndex[Idx] = true;
+      compStr++;
+    } while (*compStr && (Idx = matType->getPointAccessorIdx(*compStr)) != -1);
+  } else {
+    while ((Idx = matType->getNumericAccessorIdx(*compStr)) != -1) {
+      if (HasIndex[Idx]) HasRepeated = true;
+      HasIndex[Idx] = true;
+      compStr++;
+    }
+  }
+
+  if (*compStr) {
+    // We didn't get to the end of the string. This means the component names
+    // didn't come from the same set *or* we encountered an illegal name.
+    S.Diag(OpLoc, diag::err_ext_vector_component_name_illegal)
+      << StringRef(compStr, 1) << SourceRange(CompLoc);
+    return QualType();
+  }
+
+  // Ensure no component accessor exceeds the width of the vector type it
+  // operates on.
+  compStr = CompName->getNameStart();
+
+  while (*compStr) {
+    if (!matType->isAccessorWithinNumElements(*compStr++)) {
+      S.Diag(OpLoc, diag::err_ext_vector_component_exceeds_length)
+        << baseType << SourceRange(CompLoc);
+      return QualType();
+    }
+  }
+
+  // The component accessor looks fine - now we need to compute the actual type.
+  // The vector type is implied by the component accessor. For example,
+  // vec4.b is a float, vec4.xy is a vec2, vec4.rgb is a vec3, etc.
+  unsigned CompSize = CompName->getLength();
+
+  if (CompSize == 1)
+    return matType->getElementType();
+
+  if (HasRepeated) VK = VK_RValue;
+
+  QualType VT = S.Context.getExtVectorType(matType->getElementType(), CompSize);
+  // Now look up the TypeDefDecl from the vector type. Without this,
+  // diagostics look bad. We want extended vector types to appear built-in.
+  for (Sema::ExtVectorDeclsType::iterator 
+         I = S.ExtVectorDecls.begin(S.getExternalSource()),
+         E = S.ExtVectorDecls.end(); 
+       I != E; ++I) {
+    if ((*I)->getUnderlyingType() == VT)
+      return S.Context.getTypedefType(*I);
+  }
+  
+  return VT; // should never get here (a typedef type should always be found).
+}
+
 static Decl *FindGetterSetterNameDeclFromProtocolList(const ObjCProtocolDecl*PDecl,
                                                 IdentifierInfo *Member,
                                                 const Selector &Sel,
@@ -1529,6 +1612,20 @@ static ExprResult LookupMemberExpr(Sema &S, LookupResult &R,
 
     return new (S.Context)
         ExtVectorElementExpr(ret, VK, BaseExpr.get(), *Member, MemberLoc);
+  }
+
+  // Handle 'field access' to matrices, such as 'M.m00m01'.
+  if (BaseType->isExtMatrixType()) {
+    // FIXME: this expr should store IsArrow.
+    IdentifierInfo *Member = MemberName.getAsIdentifierInfo();
+    ExprValueKind VK = (IsArrow ? VK_LValue : BaseExpr.get()->getValueKind());
+    QualType ret = CheckExtMatrixComponent(S, BaseType, VK, OpLoc,
+                                           Member, MemberLoc);
+    if (ret.isNull())
+      return ExprError();
+
+    return new (S.Context)
+        ExtMatrixElementExpr(ret, VK, BaseExpr.get(), *Member, MemberLoc);
   }
 
   // Adjust builtin-sel to the appropriate redefinition type if that's

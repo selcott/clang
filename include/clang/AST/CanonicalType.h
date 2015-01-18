@@ -539,6 +539,12 @@ struct CanProxyAdaptor<ExtVectorType> : public CanProxyBase<ExtVectorType> {
 };
 
 template<>
+struct CanProxyAdaptor<ExtMatrixType> : public CanProxyBase<ExtMatrixType> {
+  LLVM_CLANG_CANPROXY_TYPE_ACCESSOR(getElementType)
+  LLVM_CLANG_CANPROXY_SIMPLE_ACCESSOR(unsigned, getNumElements)
+};
+
+template<>
 struct CanProxyAdaptor<FunctionType> : public CanProxyBase<FunctionType> {
   LLVM_CLANG_CANPROXY_TYPE_ACCESSOR(getReturnType)
   LLVM_CLANG_CANPROXY_SIMPLE_ACCESSOR(FunctionType::ExtInfo, getExtInfo)

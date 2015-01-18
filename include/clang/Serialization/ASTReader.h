@@ -753,6 +753,11 @@ private:
   /// Used by Sema for finding sugared names for ext_vectors in diagnostics.
   SmallVector<uint64_t, 4> ExtVectorDecls;
 
+  /// \brief The IDs of type aliases for ext_matrices that exist in the chain.
+  ///
+  /// Used by Sema for finding sugared names for ext_matrices in diagnostics.
+  SmallVector<uint64_t, 4> ExtMatrixDecls;
+
   //@}
 
   /// \name Sema-relevant special data
@@ -1833,6 +1838,8 @@ public:
                          SmallVectorImpl<CXXConstructorDecl *> &Decls) override;
 
   void ReadExtVectorDecls(SmallVectorImpl<TypedefNameDecl *> &Decls) override;
+
+  void ReadExtMatrixDecls(SmallVectorImpl<TypedefNameDecl *> &Decls) override;
 
   void ReadDynamicClasses(SmallVectorImpl<CXXRecordDecl *> &Decls) override;
 

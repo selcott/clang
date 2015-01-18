@@ -495,6 +495,7 @@ namespace  {
     void VisitUnaryExprOrTypeTraitExpr(const UnaryExprOrTypeTraitExpr *Node);
     void VisitMemberExpr(const MemberExpr *Node);
     void VisitExtVectorElementExpr(const ExtVectorElementExpr *Node);
+    void VisitExtMatrixElementExpr(const ExtMatrixElementExpr *Node);
     void VisitBinaryOperator(const BinaryOperator *Node);
     void VisitCompoundAssignOperator(const CompoundAssignOperator *Node);
     void VisitAddrLabelExpr(const AddrLabelExpr *Node);
@@ -1829,6 +1830,11 @@ void ASTDumper::VisitMemberExpr(const MemberExpr *Node) {
 }
 
 void ASTDumper::VisitExtVectorElementExpr(const ExtVectorElementExpr *Node) {
+  VisitExpr(Node);
+  OS << " " << Node->getAccessor().getNameStart();
+}
+
+void ASTDumper::VisitExtMatrixElementExpr(const ExtMatrixElementExpr *Node) {
   VisitExpr(Node);
   OS << " " << Node->getAccessor().getNameStart();
 }

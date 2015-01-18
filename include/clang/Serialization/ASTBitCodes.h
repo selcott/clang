@@ -862,7 +862,9 @@ namespace clang {
       /// \brief A DecayedType record.
       TYPE_DECAYED               = 41,
       /// \brief An AdjustedType record.
-      TYPE_ADJUSTED              = 42
+      TYPE_ADJUSTED              = 42,
+      /// \brief An ExtMatrixType record.
+      TYPE_EXT_MATRIX            = 43
     };
 
     /// \brief The type IDs for special types constructed by semantic
@@ -1189,6 +1191,8 @@ namespace clang {
       EXPR_COMPOUND_LITERAL,
       /// \brief An ExtVectorElementExpr record.
       EXPR_EXT_VECTOR_ELEMENT,
+      /// \brief An ExtMatrixElementExpr record.
+      EXPR_EXT_MATRIX_ELEMENT,
       /// \brief An InitListExpr record.
       EXPR_INIT_LIST,
       /// \brief A DesignatedInitExpr record.

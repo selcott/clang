@@ -5299,6 +5299,47 @@ ExprResult Sema::CheckExtVectorCast(SourceRange R, QualType DestTy,
   return CastExpr;
 }
 
+ExprResult Sema::CheckExtMatrixCast(SourceRange R, QualType DestTy,
+                                    Expr *CastExpr, CastKind &Kind) {
+  assert(DestTy->isExtMatrixType() && "Not an extended matrix type!");
+
+  QualType SrcTy = CastExpr->getType();
+
+  // If SrcTy is a VectorType, the total size must match to explicitly cast to
+  // an ExtMatrixType.
+  // In OpenCL, casts between vectors of different types are not allowed.
+  // (See OpenCL 6.2).
+  if (SrcTy->isVectorType()) {
+    if (!VectorTypesMatch(*this, SrcTy, DestTy)
+        || (getLangOpts().OpenCL &&
+            (DestTy.getCanonicalType() != SrcTy.getCanonicalType()))) {
+      Diag(R.getBegin(),diag::err_invalid_conversion_between_ext_vectors)
+        << DestTy << SrcTy << R;
+      return ExprError();
+    }
+    Kind = CK_BitCast;
+    return CastExpr;
+  }
+
+  // All non-pointer scalars can be cast to ExtMatrix type.  The appropriate
+  // conversion will take place first from scalar to elt type, and then
+  // splat from elt type to vector.
+  if (SrcTy->isPointerType())
+    return Diag(R.getBegin(),
+                diag::err_invalid_conversion_between_vector_and_scalar)
+      << DestTy << SrcTy << R;
+
+  QualType DestElemTy = DestTy->getAs<ExtMatrixType>()->getElementType();
+  ExprResult CastExprRes = CastExpr;
+  CastKind CK = PrepareScalarCast(CastExprRes, DestElemTy);
+  if (CastExprRes.isInvalid())
+    return ExprError();
+  CastExpr = ImpCastExprToType(CastExprRes.get(), DestElemTy, CK).get();
+
+  Kind = CK_VectorSplat;
+  return CastExpr;
+}
+
 ExprResult
 Sema::ActOnCastExpr(Scope *S, SourceLocation LParenLoc,
                     Declarator &D, ParsedType &Ty,
@@ -6504,12 +6545,50 @@ Sema::CheckAssignmentConstraints(QualType LHSType, ExprResult &RHS,
   // Allow scalar to ExtVector assignments, and assignments of an ExtVector type
   // to the same ExtVector type.
   if (LHSType->isExtVectorType()) {
-    if (RHSType->isExtVectorType())
-      return Incompatible;
+    if (RHSType->isExtVectorType()) {
+      if (cast<ExtVectorType>(LHSType)->getNumElements() ==
+          cast<ExtVectorType>(RHSType)->getNumElements()) {
+        QualType elType = cast<ExtVectorType>(LHSType)->getElementType();
+        Kind = CK_BitCast;
+        return Compatible;
+      }
+      else {
+        return Incompatible;
+      }
+    }
     if (RHSType->isArithmeticType()) {
       // CK_VectorSplat does T -> vector T, so first cast to the
       // element type.
       QualType elType = cast<ExtVectorType>(LHSType)->getElementType();
+      if (elType != RHSType) {
+        Kind = PrepareScalarCast(RHS, elType);
+        RHS = ImpCastExprToType(RHS.get(), elType, Kind);
+      }
+      Kind = CK_VectorSplat;
+      return Compatible;
+    }
+  }
+
+  // Allow scalar to ExtMatrix assignments, and assignments of an ExtMatrix type
+  // to the same ExtMatrix type.
+  if (LHSType->isExtMatrixType()) {
+    if (RHSType->isExtMatrixType()) {
+      if ((cast<ExtMatrixType>(LHSType)->getNumRows() ==
+           cast<ExtMatrixType>(RHSType)->getNumRows()) &&
+          (cast<ExtMatrixType>(LHSType)->getNumCols() ==
+           cast<ExtMatrixType>(RHSType)->getNumCols())) {
+        QualType elType = cast<ExtMatrixType>(LHSType)->getElementType();
+        Kind = CK_BitCast;
+        return Compatible;
+      }
+      else {
+        return Incompatible;
+      }
+    }
+    if (RHSType->isArithmeticType()) {
+      // CK_VectorSplat does T -> vector T, so first cast to the
+      // element type.
+      QualType elType = cast<ExtMatrixType>(LHSType)->getElementType();
       if (elType != RHSType) {
         Kind = PrepareScalarCast(RHS, elType);
         RHS = ImpCastExprToType(RHS.get(), elType, Kind);
@@ -6981,7 +7060,7 @@ QualType Sema::CheckVectorOperands(ExprResult &LHS, ExprResult &RHS,
   // If we have compatible AltiVec and GCC vector types, use the AltiVec type.
   if (LHSVecType && RHSVecType &&
       Context.areCompatibleVectorTypes(LHSType, RHSType)) {
-    if (isa<ExtVectorType>(LHSVecType)) {
+    if (isa<ExtVectorType>(LHSVecType) || isa<ExtMatrixType>(LHSVecType)) {
       RHS = ImpCastExprToType(RHS.get(), LHSType, CK_BitCast);
       return LHSType;
     }
@@ -6993,12 +7072,12 @@ QualType Sema::CheckVectorOperands(ExprResult &LHS, ExprResult &RHS,
 
   // If there's an ext-vector type and a scalar, try to convert the scalar to
   // the vector element type and splat.
-  if (!RHSVecType && isa<ExtVectorType>(LHSVecType)) {
+  if (!RHSVecType && (isa<ExtVectorType>(LHSVecType) || isa<ExtMatrixType>(LHSVecType))) {
     if (!tryVectorConvertAndSplat(*this, &RHS, RHSType,
                                   LHSVecType->getElementType(), LHSType))
       return LHSType;
   }
-  if (!LHSVecType && isa<ExtVectorType>(RHSVecType)) {
+  if (!LHSVecType && (isa<ExtVectorType>(RHSVecType) || isa<ExtMatrixType>(RHSVecType))) {
     if (!tryVectorConvertAndSplat(*this, (IsCompAssign ? nullptr : &LHS),
                                   LHSType, RHSVecType->getElementType(),
                                   RHSType))
@@ -12361,6 +12440,7 @@ bool Sema::tryCaptureVariable(VarDecl *Var, SourceLocation ExprLoc,
         case Type::Complex:
         case Type::Vector:
         case Type::ExtVector:
+        case Type::ExtMatrix:
         case Type::Record:
         case Type::Enum:
         case Type::Elaborated:

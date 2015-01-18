@@ -1018,7 +1018,7 @@ void ASTContext::InitBuiltinTypes(const TargetInfo &Target) {
   InitBuiltinType(ObjCBuiltinClassTy, BuiltinType::ObjCClass);
   InitBuiltinType(ObjCBuiltinSelTy, BuiltinType::ObjCSel);
 
-  if (LangOpts.OpenCL) { 
+  if (LangOpts.OpenCL) {
     InitBuiltinType(OCLImage1dTy, BuiltinType::OCLImage1d);
     InitBuiltinType(OCLImage1dArrayTy, BuiltinType::OCLImage1dArray);
     InitBuiltinType(OCLImage1dBufferTy, BuiltinType::OCLImage1dBuffer);
@@ -1029,7 +1029,7 @@ void ASTContext::InitBuiltinTypes(const TargetInfo &Target) {
     InitBuiltinType(OCLSamplerTy, BuiltinType::OCLSampler);
     InitBuiltinType(OCLEventTy, BuiltinType::OCLEvent);
   }
-  
+
   // Builtin type for __objc_yes and __objc_no
   ObjCBuiltinBoolTy = (Target.useSignedCharForObjCBool() ?
                        SignedCharTy : BoolTy);
@@ -1046,6 +1046,250 @@ void ASTContext::InitBuiltinTypes(const TargetInfo &Target) {
 
   // half type (OpenCL 6.1.1.1) / ARM NEON __fp16
   InitBuiltinType(HalfTy, BuiltinType::Half);
+
+  if (LangOpts.HLSL) {
+    InitBuiltinType(HLSLmin10floatTy, BuiltinType::HLSLmin10float);
+    InitBuiltinType(HLSLmin16floatTy, BuiltinType::HLSLmin16float);
+    InitBuiltinType(HLSLmin12intTy, BuiltinType::HLSLmin12int);
+    InitBuiltinType(HLSLmin16intTy, BuiltinType::HLSLmin16int);
+    InitBuiltinType(HLSLmin16uintTy, BuiltinType::HLSLmin16uint);
+    // vector types
+    {
+        // bool
+        HLSLbool1Ty = getExtVectorType(BoolTy, 1);
+        HLSLbool2Ty = getExtVectorType(BoolTy, 2);
+        HLSLbool3Ty = getExtVectorType(BoolTy, 3);
+        HLSLbool4Ty = getExtVectorType(BoolTy, 4);
+        // int
+        HLSLint1Ty = getExtVectorType(IntTy, 1);
+        HLSLint2Ty = getExtVectorType(IntTy, 2);
+        HLSLint3Ty = getExtVectorType(IntTy, 3);
+        HLSLint4Ty = getExtVectorType(IntTy, 4);
+        // uint
+        HLSLuint1Ty = getExtVectorType(UnsignedIntTy, 1);
+        HLSLuint2Ty = getExtVectorType(UnsignedIntTy, 2);
+        HLSLuint3Ty = getExtVectorType(UnsignedIntTy, 3);
+        HLSLuint4Ty = getExtVectorType(UnsignedIntTy, 4);
+        // half
+        HLSLhalf1Ty = getExtVectorType(HalfTy, 1);
+        HLSLhalf2Ty = getExtVectorType(HalfTy, 2);
+        HLSLhalf3Ty = getExtVectorType(HalfTy, 3);
+        HLSLhalf4Ty = getExtVectorType(HalfTy, 4);
+        // float
+        HLSLfloat1Ty = getExtVectorType(FloatTy, 1);
+        HLSLfloat2Ty = getExtVectorType(FloatTy, 2);
+        HLSLfloat3Ty = getExtVectorType(FloatTy, 3);
+        HLSLfloat4Ty = getExtVectorType(FloatTy, 4);
+        // double
+        HLSLdouble1Ty = getExtVectorType(DoubleTy, 1);
+        HLSLdouble2Ty = getExtVectorType(DoubleTy, 2);
+        HLSLdouble3Ty = getExtVectorType(DoubleTy, 3);
+        HLSLdouble4Ty = getExtVectorType(DoubleTy, 4);
+        // min10float
+        HLSLmin10float1Ty = getExtVectorType(HLSLmin10floatTy, 1);
+        HLSLmin10float2Ty = getExtVectorType(HLSLmin10floatTy, 2);
+        HLSLmin10float3Ty = getExtVectorType(HLSLmin10floatTy, 3);
+        HLSLmin10float4Ty = getExtVectorType(HLSLmin10floatTy, 4);
+        // min16float
+        HLSLmin16float1Ty = getExtVectorType(HLSLmin16floatTy, 1);
+        HLSLmin16float2Ty = getExtVectorType(HLSLmin16floatTy, 2);
+        HLSLmin16float3Ty = getExtVectorType(HLSLmin16floatTy, 3);
+        HLSLmin16float4Ty = getExtVectorType(HLSLmin16floatTy, 4);
+        // min12int
+        HLSLmin12int1Ty = getExtVectorType(HLSLmin12intTy, 1);
+        HLSLmin12int2Ty = getExtVectorType(HLSLmin12intTy, 2);
+        HLSLmin12int3Ty = getExtVectorType(HLSLmin12intTy, 3);
+        HLSLmin12int4Ty = getExtVectorType(HLSLmin12intTy, 4);
+        // min16int
+        HLSLmin16int1Ty = getExtVectorType(HLSLmin16intTy, 1);
+        HLSLmin16int2Ty = getExtVectorType(HLSLmin16intTy, 2);
+        HLSLmin16int3Ty = getExtVectorType(HLSLmin16intTy, 3);
+        HLSLmin16int4Ty = getExtVectorType(HLSLmin16intTy, 4);
+        // min16uint
+        HLSLmin16uint1Ty = getExtVectorType(HLSLmin16uintTy, 1);
+        HLSLmin16uint2Ty = getExtVectorType(HLSLmin16uintTy, 2);
+        HLSLmin16uint3Ty = getExtVectorType(HLSLmin16uintTy, 3);
+        HLSLmin16uint4Ty = getExtVectorType(HLSLmin16uintTy, 4);
+    }
+    // matrix types
+    {
+        HLSLbool1x1Ty = getExtMatrixType(BoolTy, 1, 1);
+        HLSLbool1x2Ty = getExtMatrixType(BoolTy, 1, 2);
+        HLSLbool1x3Ty = getExtMatrixType(BoolTy, 1, 3);
+        HLSLbool1x4Ty = getExtMatrixType(BoolTy, 1, 4);
+        HLSLbool2x1Ty = getExtMatrixType(BoolTy, 2, 1);
+        HLSLbool2x2Ty = getExtMatrixType(BoolTy, 2, 2);
+        HLSLbool2x3Ty = getExtMatrixType(BoolTy, 2, 3);
+        HLSLbool2x4Ty = getExtMatrixType(BoolTy, 2, 4);
+        HLSLbool3x1Ty = getExtMatrixType(BoolTy, 3, 1);
+        HLSLbool3x2Ty = getExtMatrixType(BoolTy, 3, 2);
+        HLSLbool3x3Ty = getExtMatrixType(BoolTy, 3, 3);
+        HLSLbool3x4Ty = getExtMatrixType(BoolTy, 3, 4);
+        HLSLbool4x1Ty = getExtMatrixType(BoolTy, 4, 1);
+        HLSLbool4x2Ty = getExtMatrixType(BoolTy, 4, 2);
+        HLSLbool4x3Ty = getExtMatrixType(BoolTy, 4, 3);
+        HLSLbool4x4Ty = getExtMatrixType(BoolTy, 4, 4);
+        HLSLint1x1Ty = getExtMatrixType(IntTy, 1, 1);
+        HLSLint1x2Ty = getExtMatrixType(IntTy, 1, 2);
+        HLSLint1x3Ty = getExtMatrixType(IntTy, 1, 3);
+        HLSLint1x4Ty = getExtMatrixType(IntTy, 1, 4);
+        HLSLint2x1Ty = getExtMatrixType(IntTy, 2, 1);
+        HLSLint2x2Ty = getExtMatrixType(IntTy, 2, 2);
+        HLSLint2x3Ty = getExtMatrixType(IntTy, 2, 3);
+        HLSLint2x4Ty = getExtMatrixType(IntTy, 2, 4);
+        HLSLint3x1Ty = getExtMatrixType(IntTy, 3, 1);
+        HLSLint3x2Ty = getExtMatrixType(IntTy, 3, 2);
+        HLSLint3x3Ty = getExtMatrixType(IntTy, 3, 3);
+        HLSLint3x4Ty = getExtMatrixType(IntTy, 3, 4);
+        HLSLint4x1Ty = getExtMatrixType(IntTy, 4, 1);
+        HLSLint4x2Ty = getExtMatrixType(IntTy, 4, 2);
+        HLSLint4x3Ty = getExtMatrixType(IntTy, 4, 3);
+        HLSLint4x4Ty = getExtMatrixType(IntTy, 4, 4);
+        HLSLuint1x1Ty = getExtMatrixType(UnsignedIntTy, 1, 1);
+        HLSLuint1x2Ty = getExtMatrixType(UnsignedIntTy, 1, 2);
+        HLSLuint1x3Ty = getExtMatrixType(UnsignedIntTy, 1, 3);
+        HLSLuint1x4Ty = getExtMatrixType(UnsignedIntTy, 1, 4);
+        HLSLuint2x1Ty = getExtMatrixType(UnsignedIntTy, 2, 1);
+        HLSLuint2x2Ty = getExtMatrixType(UnsignedIntTy, 2, 2);
+        HLSLuint2x3Ty = getExtMatrixType(UnsignedIntTy, 2, 3);
+        HLSLuint2x4Ty = getExtMatrixType(UnsignedIntTy, 2, 4);
+        HLSLuint3x1Ty = getExtMatrixType(UnsignedIntTy, 3, 1);
+        HLSLuint3x2Ty = getExtMatrixType(UnsignedIntTy, 3, 2);
+        HLSLuint3x3Ty = getExtMatrixType(UnsignedIntTy, 3, 3);
+        HLSLuint3x4Ty = getExtMatrixType(UnsignedIntTy, 3, 4);
+        HLSLuint4x1Ty = getExtMatrixType(UnsignedIntTy, 4, 1);
+        HLSLuint4x2Ty = getExtMatrixType(UnsignedIntTy, 4, 2);
+        HLSLuint4x3Ty = getExtMatrixType(UnsignedIntTy, 4, 3);
+        HLSLuint4x4Ty = getExtMatrixType(UnsignedIntTy, 4, 4);
+        HLSLfloat1x1Ty = getExtMatrixType(FloatTy, 1, 1);
+        HLSLfloat1x2Ty = getExtMatrixType(FloatTy, 1, 2);
+        HLSLfloat1x3Ty = getExtMatrixType(FloatTy, 1, 3);
+        HLSLfloat1x4Ty = getExtMatrixType(FloatTy, 1, 4);
+        HLSLfloat2x1Ty = getExtMatrixType(FloatTy, 2, 1);
+        HLSLfloat2x2Ty = getExtMatrixType(FloatTy, 2, 2);
+        HLSLfloat2x3Ty = getExtMatrixType(FloatTy, 2, 3);
+        HLSLfloat2x4Ty = getExtMatrixType(FloatTy, 2, 4);
+        HLSLfloat3x1Ty = getExtMatrixType(FloatTy, 3, 1);
+        HLSLfloat3x2Ty = getExtMatrixType(FloatTy, 3, 2);
+        HLSLfloat3x3Ty = getExtMatrixType(FloatTy, 3, 3);
+        HLSLfloat3x4Ty = getExtMatrixType(FloatTy, 3, 4);
+        HLSLfloat4x1Ty = getExtMatrixType(FloatTy, 4, 1);
+        HLSLfloat4x2Ty = getExtMatrixType(FloatTy, 4, 2);
+        HLSLfloat4x3Ty = getExtMatrixType(FloatTy, 4, 3);
+        HLSLfloat4x4Ty = getExtMatrixType(FloatTy, 4, 4);
+        HLSLmin10float1x1Ty = getExtMatrixType(HLSLmin10floatTy, 1, 1);
+        HLSLmin10float1x2Ty = getExtMatrixType(HLSLmin10floatTy, 1, 2);
+        HLSLmin10float1x3Ty = getExtMatrixType(HLSLmin10floatTy, 1, 3);
+        HLSLmin10float1x4Ty = getExtMatrixType(HLSLmin10floatTy, 1, 4);
+        HLSLmin10float2x1Ty = getExtMatrixType(HLSLmin10floatTy, 2, 1);
+        HLSLmin10float2x2Ty = getExtMatrixType(HLSLmin10floatTy, 2, 2);
+        HLSLmin10float2x3Ty = getExtMatrixType(HLSLmin10floatTy, 2, 3);
+        HLSLmin10float2x4Ty = getExtMatrixType(HLSLmin10floatTy, 2, 4);
+        HLSLmin10float3x1Ty = getExtMatrixType(HLSLmin10floatTy, 3, 1);
+        HLSLmin10float3x2Ty = getExtMatrixType(HLSLmin10floatTy, 3, 2);
+        HLSLmin10float3x3Ty = getExtMatrixType(HLSLmin10floatTy, 3, 3);
+        HLSLmin10float3x4Ty = getExtMatrixType(HLSLmin10floatTy, 3, 4);
+        HLSLmin10float4x1Ty = getExtMatrixType(HLSLmin10floatTy, 4, 1);
+        HLSLmin10float4x2Ty = getExtMatrixType(HLSLmin10floatTy, 4, 2);
+        HLSLmin10float4x3Ty = getExtMatrixType(HLSLmin10floatTy, 4, 3);
+        HLSLmin10float4x4Ty = getExtMatrixType(HLSLmin10floatTy, 4, 4);
+        HLSLmin16float1x1Ty = getExtMatrixType(HLSLmin16floatTy, 1, 1);
+        HLSLmin16float1x2Ty = getExtMatrixType(HLSLmin16floatTy, 1, 2);
+        HLSLmin16float1x3Ty = getExtMatrixType(HLSLmin16floatTy, 1, 3);
+        HLSLmin16float1x4Ty = getExtMatrixType(HLSLmin16floatTy, 1, 4);
+        HLSLmin16float2x1Ty = getExtMatrixType(HLSLmin16floatTy, 2, 1);
+        HLSLmin16float2x2Ty = getExtMatrixType(HLSLmin16floatTy, 2, 2);
+        HLSLmin16float2x3Ty = getExtMatrixType(HLSLmin16floatTy, 2, 3);
+        HLSLmin16float2x4Ty = getExtMatrixType(HLSLmin16floatTy, 2, 4);
+        HLSLmin16float3x1Ty = getExtMatrixType(HLSLmin16floatTy, 3, 1);
+        HLSLmin16float3x2Ty = getExtMatrixType(HLSLmin16floatTy, 3, 2);
+        HLSLmin16float3x3Ty = getExtMatrixType(HLSLmin16floatTy, 3, 3);
+        HLSLmin16float3x4Ty = getExtMatrixType(HLSLmin16floatTy, 3, 4);
+        HLSLmin16float4x1Ty = getExtMatrixType(HLSLmin16floatTy, 4, 1);
+        HLSLmin16float4x2Ty = getExtMatrixType(HLSLmin16floatTy, 4, 2);
+        HLSLmin16float4x3Ty = getExtMatrixType(HLSLmin16floatTy, 4, 3);
+        HLSLmin16float4x4Ty = getExtMatrixType(HLSLmin16floatTy, 4, 4);
+        HLSLmin12int1x1Ty = getExtMatrixType(HLSLmin12intTy, 1, 1);
+        HLSLmin12int1x2Ty = getExtMatrixType(HLSLmin12intTy, 1, 2);
+        HLSLmin12int1x3Ty = getExtMatrixType(HLSLmin12intTy, 1, 3);
+        HLSLmin12int1x4Ty = getExtMatrixType(HLSLmin12intTy, 1, 4);
+        HLSLmin12int2x1Ty = getExtMatrixType(HLSLmin12intTy, 2, 1);
+        HLSLmin12int2x2Ty = getExtMatrixType(HLSLmin12intTy, 2, 2);
+        HLSLmin12int2x3Ty = getExtMatrixType(HLSLmin12intTy, 2, 3);
+        HLSLmin12int2x4Ty = getExtMatrixType(HLSLmin12intTy, 2, 4);
+        HLSLmin12int3x1Ty = getExtMatrixType(HLSLmin12intTy, 3, 1);
+        HLSLmin12int3x2Ty = getExtMatrixType(HLSLmin12intTy, 3, 2);
+        HLSLmin12int3x3Ty = getExtMatrixType(HLSLmin12intTy, 3, 3);
+        HLSLmin12int3x4Ty = getExtMatrixType(HLSLmin12intTy, 3, 4);
+        HLSLmin12int4x1Ty = getExtMatrixType(HLSLmin12intTy, 4, 1);
+        HLSLmin12int4x2Ty = getExtMatrixType(HLSLmin12intTy, 4, 2);
+        HLSLmin12int4x3Ty = getExtMatrixType(HLSLmin12intTy, 4, 3);
+        HLSLmin12int4x4Ty = getExtMatrixType(HLSLmin12intTy, 4, 4);
+        HLSLmin16int1x1Ty = getExtMatrixType(HLSLmin16intTy, 1, 1);
+        HLSLmin16int1x2Ty = getExtMatrixType(HLSLmin16intTy, 1, 2);
+        HLSLmin16int1x3Ty = getExtMatrixType(HLSLmin16intTy, 1, 3);
+        HLSLmin16int1x4Ty = getExtMatrixType(HLSLmin16intTy, 1, 4);
+        HLSLmin16int2x1Ty = getExtMatrixType(HLSLmin16intTy, 2, 1);
+        HLSLmin16int2x2Ty = getExtMatrixType(HLSLmin16intTy, 2, 2);
+        HLSLmin16int2x3Ty = getExtMatrixType(HLSLmin16intTy, 2, 3);
+        HLSLmin16int2x4Ty = getExtMatrixType(HLSLmin16intTy, 2, 4);
+        HLSLmin16int3x1Ty = getExtMatrixType(HLSLmin16intTy, 3, 1);
+        HLSLmin16int3x2Ty = getExtMatrixType(HLSLmin16intTy, 3, 2);
+        HLSLmin16int3x3Ty = getExtMatrixType(HLSLmin16intTy, 3, 3);
+        HLSLmin16int3x4Ty = getExtMatrixType(HLSLmin16intTy, 3, 4);
+        HLSLmin16int4x1Ty = getExtMatrixType(HLSLmin16intTy, 4, 1);
+        HLSLmin16int4x2Ty = getExtMatrixType(HLSLmin16intTy, 4, 2);
+        HLSLmin16int4x3Ty = getExtMatrixType(HLSLmin16intTy, 4, 3);
+        HLSLmin16int4x4Ty = getExtMatrixType(HLSLmin16intTy, 4, 4);
+        HLSLmin16uint1x1Ty = getExtMatrixType(HLSLmin16uintTy, 1, 1);
+        HLSLmin16uint1x2Ty = getExtMatrixType(HLSLmin16uintTy, 1, 2);
+        HLSLmin16uint1x3Ty = getExtMatrixType(HLSLmin16uintTy, 1, 3);
+        HLSLmin16uint1x4Ty = getExtMatrixType(HLSLmin16uintTy, 1, 4);
+        HLSLmin16uint2x1Ty = getExtMatrixType(HLSLmin16uintTy, 2, 1);
+        HLSLmin16uint2x2Ty = getExtMatrixType(HLSLmin16uintTy, 2, 2);
+        HLSLmin16uint2x3Ty = getExtMatrixType(HLSLmin16uintTy, 2, 3);
+        HLSLmin16uint2x4Ty = getExtMatrixType(HLSLmin16uintTy, 2, 4);
+        HLSLmin16uint3x1Ty = getExtMatrixType(HLSLmin16uintTy, 3, 1);
+        HLSLmin16uint3x2Ty = getExtMatrixType(HLSLmin16uintTy, 3, 2);
+        HLSLmin16uint3x3Ty = getExtMatrixType(HLSLmin16uintTy, 3, 3);
+        HLSLmin16uint3x4Ty = getExtMatrixType(HLSLmin16uintTy, 3, 4);
+        HLSLmin16uint4x1Ty = getExtMatrixType(HLSLmin16uintTy, 4, 1);
+        HLSLmin16uint4x2Ty = getExtMatrixType(HLSLmin16uintTy, 4, 2);
+        HLSLmin16uint4x3Ty = getExtMatrixType(HLSLmin16uintTy, 4, 3);
+        HLSLmin16uint4x4Ty = getExtMatrixType(HLSLmin16uintTy, 4, 4);
+    }
+    InitBuiltinType(HLSLAppendStructuredBufferTy, BuiltinType::HLSLAppendStructuredBuffer);
+    InitBuiltinType(HLSLBufferTy, BuiltinType::HLSLBuffer);
+    InitBuiltinType(HLSLByteAddressBufferTy, BuiltinType::HLSLByteAddressBuffer);
+    InitBuiltinType(HLSLConsumeStructuredBufferTy, BuiltinType::HLSLConsumeStructuredBuffer);
+    InitBuiltinType(HLSLInputPatchTy, BuiltinType::HLSLInputPatch);
+    InitBuiltinType(HLSLLineStreamTy, BuiltinType::HLSLLineStream);
+    InitBuiltinType(HLSLmatrixTy, BuiltinType::HLSLmatrix);
+    InitBuiltinType(HLSLOutputPatchTy, BuiltinType::HLSLOutputPatch);
+    InitBuiltinType(HLSLPointStreamTy, BuiltinType::HLSLPointStream);
+    InitBuiltinType(HLSLRWBufferTy, BuiltinType::HLSLRWBuffer);
+    InitBuiltinType(HLSLRWByteAddressBufferTy, BuiltinType::HLSLRWByteAddressBuffer);
+    InitBuiltinType(HLSLRWStructuredBufferTy, BuiltinType::HLSLRWStructuredBuffer);
+    InitBuiltinType(HLSLRWTexture1DTy, BuiltinType::HLSLRWTexture1D);
+    InitBuiltinType(HLSLRWTexture1DArrayTy, BuiltinType::HLSLRWTexture1DArray);
+    InitBuiltinType(HLSLRWTexture2DTy, BuiltinType::HLSLRWTexture2D);
+    InitBuiltinType(HLSLRWTexture2DArrayTy, BuiltinType::HLSLRWTexture2DArray);
+    InitBuiltinType(HLSLRWTexture3DTy, BuiltinType::HLSLRWTexture3D);
+    InitBuiltinType(HLSLSamplerStateTy, BuiltinType::HLSLSamplerState);
+    InitBuiltinType(HLSLSamplerComparisonStateTy, BuiltinType::HLSLSamplerComparisonState);
+    InitBuiltinType(HLSLStructuredBufferTy, BuiltinType::HLSLStructuredBuffer);
+    InitBuiltinType(HLSLTexture1DTy, BuiltinType::HLSLTexture1D);
+    InitBuiltinType(HLSLTexture1DArrayTy, BuiltinType::HLSLTexture1DArray);
+    InitBuiltinType(HLSLTexture2DTy, BuiltinType::HLSLTexture2D);
+    InitBuiltinType(HLSLTexture2DArrayTy, BuiltinType::HLSLTexture2DArray);
+    InitBuiltinType(HLSLTexture2DMSTy, BuiltinType::HLSLTexture2DMS);
+    InitBuiltinType(HLSLTexture2DMSArrayTy, BuiltinType::HLSLTexture2DMSArray);
+    InitBuiltinType(HLSLTexture3DTy, BuiltinType::HLSLTexture3D);
+    InitBuiltinType(HLSLTextureCubeTy, BuiltinType::HLSLTextureCube);
+    InitBuiltinType(HLSLTextureCubeArrayTy, BuiltinType::HLSLTextureCubeArray);
+    InitBuiltinType(HLSLTriangleStreamTy, BuiltinType::HLSLTriangleStream);
+    InitBuiltinType(HLSLvectorTy, BuiltinType::HLSLvector);
+  }
 
   // Builtin type used to help define __builtin_va_list.
   VaListTagTy = QualType();
@@ -1485,6 +1729,7 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
       Width = llvm::RoundUpToAlignment(Width, Align);
     break;
   }
+  case Type::ExtMatrix:
   case Type::ExtVector:
   case Type::Vector: {
     const VectorType *VT = cast<VectorType>(T);
@@ -1544,6 +1789,9 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
       break;
     case BuiltinType::UInt:
     case BuiltinType::Int:
+    case BuiltinType::HLSLmin12int:
+    case BuiltinType::HLSLmin16int:
+    case BuiltinType::HLSLmin16uint:
       Width = Target->getIntWidth();
       Align = Target->getIntAlign();
       break;
@@ -1567,6 +1815,8 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
       Align = Target->getHalfAlign();
       break;
     case BuiltinType::Float:
+    case BuiltinType::HLSLmin10float:
+    case BuiltinType::HLSLmin16float:
       Width = Target->getFloatWidth();
       Align = Target->getFloatAlign();
       break;
@@ -1600,6 +1850,37 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     case BuiltinType::OCLImage2d:
     case BuiltinType::OCLImage2dArray:
     case BuiltinType::OCLImage3d:
+    case BuiltinType::HLSLAppendStructuredBuffer:
+    case BuiltinType::HLSLBuffer:
+    case BuiltinType::HLSLByteAddressBuffer:
+    case BuiltinType::HLSLConsumeStructuredBuffer:
+    case BuiltinType::HLSLInputPatch:
+    case BuiltinType::HLSLLineStream:
+    case BuiltinType::HLSLmatrix:
+    case BuiltinType::HLSLOutputPatch:
+    case BuiltinType::HLSLPointStream:
+    case BuiltinType::HLSLRWBuffer:
+    case BuiltinType::HLSLRWByteAddressBuffer:
+    case BuiltinType::HLSLRWStructuredBuffer:
+    case BuiltinType::HLSLRWTexture1D:
+    case BuiltinType::HLSLRWTexture1DArray:
+    case BuiltinType::HLSLRWTexture2D:
+    case BuiltinType::HLSLRWTexture2DArray:
+    case BuiltinType::HLSLRWTexture3D:
+    case BuiltinType::HLSLSamplerState:
+    case BuiltinType::HLSLSamplerComparisonState:
+    case BuiltinType::HLSLStructuredBuffer:
+    case BuiltinType::HLSLTexture1D:
+    case BuiltinType::HLSLTexture1DArray:
+    case BuiltinType::HLSLTexture2D:
+    case BuiltinType::HLSLTexture2DArray:
+    case BuiltinType::HLSLTexture2DMS:
+    case BuiltinType::HLSLTexture2DMSArray:
+    case BuiltinType::HLSLTexture3D:
+    case BuiltinType::HLSLTextureCube:
+    case BuiltinType::HLSLTextureCubeArray:
+    case BuiltinType::HLSLTriangleStream:
+    case BuiltinType::HLSLvector:
       // Currently these types are pointers to opaque types.
       Width = Target->getPointerWidth(0);
       Align = Target->getPointerAlign(0);
@@ -2492,6 +2773,7 @@ QualType ASTContext::getVariableArrayDecayedType(QualType type) const {
   case Type::Complex:
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ExtMatrix:
   case Type::DependentSizedExtVector:
   case Type::ObjCObject:
   case Type::ObjCInterface:
@@ -2791,6 +3073,37 @@ ASTContext::getExtVectorType(QualType vecType, unsigned NumElts) const {
   }
   ExtVectorType *New = new (*this, TypeAlignment)
     ExtVectorType(vecType, NumElts, Canonical);
+  VectorTypes.InsertNode(New, InsertPos);
+  Types.push_back(New);
+  return QualType(New, 0);
+}
+
+/// getExtMatrixType - Return the unique reference to an extended matrix type of
+/// the specified element type and size. matType must be a built-in type.
+QualType
+ASTContext::getExtMatrixType(QualType matType, unsigned NumRows, unsigned NumCols) const {
+  assert(matType->isBuiltinType() || matType->isDependentType());
+
+  // Check if we've already instantiated a vector of this type.
+  llvm::FoldingSetNodeID ID;
+  ExtMatrixType::Profile(ID, matType, NumRows, NumCols, Type::ExtMatrix,
+                         VectorType::GenericVector);
+  void *InsertPos = nullptr;
+  if (VectorType *VTP = VectorTypes.FindNodeOrInsertPos(ID, InsertPos))
+    return QualType(VTP, 0);
+
+  // If the element type isn't canonical, this won't be a canonical type either,
+  // so fill in the canonical type field.
+  QualType Canonical;
+  if (!matType.isCanonical()) {
+    Canonical = getExtMatrixType(getCanonicalType(matType), NumRows, NumCols);
+
+    // Get the new insert position for the node we care about.
+    VectorType *NewIP = VectorTypes.FindNodeOrInsertPos(ID, InsertPos);
+    assert(!NewIP && "Shouldn't be in the map!"); (void)NewIP;
+  }
+  ExtMatrixType *New = new (*this, TypeAlignment)
+    ExtMatrixType(matType, NumRows, NumCols, Canonical);
   VectorTypes.InsertNode(New, InsertPos);
   Types.push_back(New);
   return QualType(New, 0);
@@ -5233,6 +5546,42 @@ static char getObjCEncodingForPrimitiveKind(const ASTContext *C,
     case BuiltinType::OCLImage3d:
     case BuiltinType::OCLEvent:
     case BuiltinType::OCLSampler:
+    case BuiltinType::HLSLmin10float:
+    case BuiltinType::HLSLmin16float:
+    case BuiltinType::HLSLmin12int:
+    case BuiltinType::HLSLmin16int:
+    case BuiltinType::HLSLmin16uint:
+    case BuiltinType::HLSLAppendStructuredBuffer:
+    case BuiltinType::HLSLBuffer:
+    case BuiltinType::HLSLByteAddressBuffer:
+    case BuiltinType::HLSLConsumeStructuredBuffer:
+    case BuiltinType::HLSLInputPatch:
+    case BuiltinType::HLSLLineStream:
+    case BuiltinType::HLSLmatrix:
+    case BuiltinType::HLSLOutputPatch:
+    case BuiltinType::HLSLPointStream:
+    case BuiltinType::HLSLRWBuffer:
+    case BuiltinType::HLSLRWByteAddressBuffer:
+    case BuiltinType::HLSLRWStructuredBuffer:
+    case BuiltinType::HLSLRWTexture1D:
+    case BuiltinType::HLSLRWTexture1DArray:
+    case BuiltinType::HLSLRWTexture2D:
+    case BuiltinType::HLSLRWTexture2DArray:
+    case BuiltinType::HLSLRWTexture3D:
+    case BuiltinType::HLSLSamplerState:
+    case BuiltinType::HLSLSamplerComparisonState:
+    case BuiltinType::HLSLStructuredBuffer:
+    case BuiltinType::HLSLTexture1D:
+    case BuiltinType::HLSLTexture1DArray:
+    case BuiltinType::HLSLTexture2D:
+    case BuiltinType::HLSLTexture2DArray:
+    case BuiltinType::HLSLTexture2DMS:
+    case BuiltinType::HLSLTexture2DMSArray:
+    case BuiltinType::HLSLTexture3D:
+    case BuiltinType::HLSLTextureCube:
+    case BuiltinType::HLSLTextureCubeArray:
+    case BuiltinType::HLSLTriangleStream:
+    case BuiltinType::HLSLvector:
     case BuiltinType::Dependent:
 #define BUILTIN_TYPE(KIND, ID)
 #define PLACEHOLDER_TYPE(KIND, ID) \
@@ -5641,7 +5990,8 @@ void ASTContext::getObjCEncodingForTypeImpl(QualType T, std::string& S,
   //FIXME. We should do a better job than gcc.
   case Type::Vector:
   case Type::ExtVector:
-  // Until we have a coherent encoding of these three types, issue warning.
+  case Type::ExtMatrix:
+  // Until we have a coherent encoding of these four types, issue warning.
     { if (NotEncodedT)
         *NotEncodedT = T;
       return;
@@ -7170,6 +7520,10 @@ QualType ASTContext::mergeTypes(QualType LHS, QualType RHS,
   if (LHSClass == Type::ExtVector) LHSClass = Type::Vector;
   if (RHSClass == Type::ExtVector) RHSClass = Type::Vector;
 
+  // Canonicalize ExtMatrix -> Vector.
+  if (LHSClass == Type::ExtMatrix) LHSClass = Type::Vector;
+  if (RHSClass == Type::ExtMatrix) RHSClass = Type::Vector;
+
   // If the canonical type classes don't match.
   if (LHSClass != RHSClass) {
     // Note that we only have special rules for turning block enum
@@ -7212,6 +7566,7 @@ QualType ASTContext::mergeTypes(QualType LHS, QualType RHS,
   case Type::VariableArray:
   case Type::FunctionProto:
   case Type::ExtVector:
+  case Type::ExtMatrix:
     llvm_unreachable("Types are eliminated above");
 
   case Type::Pointer:

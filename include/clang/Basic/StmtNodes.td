@@ -75,6 +75,7 @@ def ExplicitCastExpr : DStmt<CastExpr, 1>;
 def CStyleCastExpr : DStmt<ExplicitCastExpr>;
 def CompoundLiteralExpr : DStmt<Expr>;
 def ExtVectorElementExpr : DStmt<Expr>;
+def ExtMatrixElementExpr : DStmt<Expr>;
 def InitListExpr : DStmt<Expr>;
 def DesignatedInitExpr : DStmt<Expr>;
 def ImplicitValueInitExpr : DStmt<Expr>;

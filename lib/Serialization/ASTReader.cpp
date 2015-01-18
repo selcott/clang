@@ -3047,6 +3047,11 @@ ASTReader::ReadASTBlock(ModuleFile &F, unsigned ClientLoadCapabilities) {
         ExtVectorDecls.push_back(getGlobalDeclID(F, Record[I]));
       break;
 
+    case EXT_MATRIX_DECLS:
+      for (unsigned I = 0, N = Record.size(); I != N; ++I)
+        ExtMatrixDecls.push_back(getGlobalDeclID(F, Record[I]));
+      break;
+
     case VTABLE_USES:
       if (Record.size() % 3 != 0) {
         Error("Invalid VTABLE_USES record");
@@ -5325,6 +5330,18 @@ QualType ASTReader::readTypeRecord(unsigned Index) {
     return Context.getExtVectorType(ElementType, NumElements);
   }
 
+  case TYPE_EXT_MATRIX: {
+    if (Record.size() != 4) {
+      Error("incorrect encoding of extended matrix type in AST file");
+      return QualType();
+    }
+
+    QualType ElementType = readType(*Loc.F, Record, Idx);
+    unsigned NumRows = Record[1];
+    unsigned NumCols = Record[2];
+    return Context.getExtMatrixType(ElementType, NumRows, NumCols);
+  }
+
   case TYPE_FUNCTION_NO_PROTO: {
     if (Record.size() != 6) {
       Error("incorrect encoding of no-proto function type");
@@ -5746,6 +5763,9 @@ void TypeLocReader::VisitVectorTypeLoc(VectorTypeLoc TL) {
   TL.setNameLoc(ReadSourceLocation(Record, Idx));
 }
 void TypeLocReader::VisitExtVectorTypeLoc(ExtVectorTypeLoc TL) {
+  TL.setNameLoc(ReadSourceLocation(Record, Idx));
+}
+void TypeLocReader::VisitExtMatrixTypeLoc(ExtMatrixTypeLoc TL) {
   TL.setNameLoc(ReadSourceLocation(Record, Idx));
 }
 void TypeLocReader::VisitFunctionTypeLoc(FunctionTypeLoc TL) {
@@ -7231,6 +7251,16 @@ void ASTReader::ReadExtVectorDecls(SmallVectorImpl<TypedefNameDecl *> &Decls) {
       Decls.push_back(D);
   }
   ExtVectorDecls.clear();
+}
+
+void ASTReader::ReadExtMatrixDecls(SmallVectorImpl<TypedefNameDecl *> &Decls) {
+  for (unsigned I = 0, N = ExtMatrixDecls.size(); I != N; ++I) {
+    TypedefNameDecl *D
+      = dyn_cast_or_null<TypedefNameDecl>(GetDecl(ExtMatrixDecls[I]));
+    if (D)
+      Decls.push_back(D);
+  }
+  ExtMatrixDecls.clear();
 }
 
 void ASTReader::ReadDynamicClasses(SmallVectorImpl<CXXRecordDecl *> &Decls) {

@@ -1009,6 +1009,7 @@ bool QualType::isCXX98PODType(ASTContext &Context) const {
   case Type::MemberPointer:
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ExtMatrix:
     return true;
 
   case Type::Enum:
@@ -1553,6 +1554,42 @@ StringRef BuiltinType::getName(const PrintingPolicy &Policy) const {
   case OCLImage3d:        return "image3d_t";
   case OCLSampler:        return "sampler_t";
   case OCLEvent:          return "event_t";
+  case HLSLmin10float:    return "min10float";
+  case HLSLmin16float:    return "min16float";
+  case HLSLmin12int:      return "min12int";
+  case HLSLmin16int:      return "min16int";
+  case HLSLmin16uint:     return "min16uint";
+  case HLSLAppendStructuredBuffer:      return "AppendStructuredBuffer";
+  case HLSLBuffer:                      return "Buffer";
+  case HLSLByteAddressBuffer:           return "ByteAddressBuffer";
+  case HLSLConsumeStructuredBuffer:     return "ConsumeStructuredBuffer";
+  case HLSLInputPatch:                  return "InputPatch";
+  case HLSLLineStream:                  return "LineStream";
+  case HLSLmatrix:                      return "matrix";
+  case HLSLOutputPatch:                 return "OutputPatch";
+  case HLSLPointStream:                 return "PointStream";
+  case HLSLRWBuffer:                    return "RWBuffer";
+  case HLSLRWByteAddressBuffer:         return "RWByteAddressBuffer";
+  case HLSLRWStructuredBuffer:          return "RWStructuredBuffer";
+  case HLSLRWTexture1D:                 return "RWTexture1D";
+  case HLSLRWTexture1DArray:            return "RWTexture1DArray";
+  case HLSLRWTexture2D:                 return "RWTexture2D";
+  case HLSLRWTexture2DArray:            return "RWTexture2DArray";
+  case HLSLRWTexture3D:                 return "RWTexture3D";
+  case HLSLSamplerState:                return "SamplerState";
+  case HLSLSamplerComparisonState:      return "SamplerComparisonState";
+  case HLSLStructuredBuffer:            return "StructuredBuffer";
+  case HLSLTexture1D:                   return "Texture1D";
+  case HLSLTexture1DArray:              return "Texture1DArray";
+  case HLSLTexture2D:                   return "Texture2D";
+  case HLSLTexture2DArray:              return "Texture2DArray";
+  case HLSLTexture2DMS:                 return "Texture2DMS";
+  case HLSLTexture2DMSArray:            return "Texture2DMSArray";
+  case HLSLTexture3D:                   return "Texture3D";
+  case HLSLTextureCube:                 return "TextureCube";
+  case HLSLTextureCubeArray:            return "TextureCubeArray";
+  case HLSLTriangleStream:              return "TriangleStream";
+  case HLSLvector:                      return "vector";
   }
   
   llvm_unreachable("Invalid builtin type.");
@@ -2219,6 +2256,7 @@ static CachedProperties computeCachedProperties(const Type *T) {
     return Cache::get(cast<ArrayType>(T)->getElementType());
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ExtMatrix:
     return Cache::get(cast<VectorType>(T)->getElementType());
   case Type::FunctionNoProto:
     return Cache::get(cast<FunctionType>(T)->getReturnType());
@@ -2303,6 +2341,7 @@ static LinkageInfo computeLinkageInfo(const Type *T) {
     return computeLinkageInfo(cast<ArrayType>(T)->getElementType());
   case Type::Vector:
   case Type::ExtVector:
+  case Type::ExtMatrix:
     return computeLinkageInfo(cast<VectorType>(T)->getElementType());
   case Type::FunctionNoProto:
     return computeLinkageInfo(cast<FunctionType>(T)->getReturnType());
